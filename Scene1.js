@@ -1,3 +1,5 @@
+var MAPWIDTH = 800
+var MAPHEIGHT = 608
 var TILEWIDTH = 16
 var TILEHEIGHT = 16
 class Scene1 extends Phaser.Scene {
@@ -21,7 +23,11 @@ class Scene1 extends Phaser.Scene {
     var layer = map.createDynamicLayer(0, tiles, 0, 0);
 
     this.input.keyboard.on('keyup_Q', function(event) {
-      this.level = createMap();
+      this.level = generateMap(this.level);
+      var map = this.make.tilemap({ data: this.level, tileWidth: 16, tileHeight: 16 });
+      var tiles = map.addTilesetImage("mario-tiles");
+      //var layer = map.createStaticLayer(0, tiles, 0, 0);
+      var layer = map.createDynamicLayer(0, tiles, 0, 0);
     },this);
 
 
@@ -71,8 +77,8 @@ function checkKeys(scene){
 }
 
 function createMap(){
-  let sizeX = config.width / TILEWIDTH;
-  let sizeY = config.height / TILEHEIGHT;
+  var sizeX = MAPWIDTH / TILEWIDTH;
+  var sizeY = MAPHEIGHT / TILEHEIGHT;
   var level = new Array(sizeX);
   for (i = 0; i < sizeX; i++)
     level[i] = new Array(sizeY);
@@ -87,11 +93,14 @@ function createMap(){
   }
 
   for (x = 0; x < sizeX; x++)
-    level[0][x] = level[sizeY-1][x] = 1
+    level[0][x] = level[sizeY-1][x] = 1;
 
   for (y = 0; y < sizeY; y++)
     level[y][0] = level[y][sizeX-1] = 1;
 
+  for (g = 0; g < 6; g++)
+    generateMap(level);
+  //generateMap(level);
 
   //level[x][y] = Phaser.Math.RND.integerInRange(0,39)
 
@@ -115,9 +124,83 @@ function createMap(){
 
 function generateMap(tiles){
 
+  var sizeX = MAPWIDTH / TILEWIDTH;
+  var sizeY = MAPHEIGHT / TILEHEIGHT;
+
   for (x = 1; x < sizeX-1; x++){
     for (y = 1; y < sizeY-1; y++){
+      tiles[y][x] = placeWall(x,y,tiles);
     }
   }
 
+  return tiles;
+}
+
+function placeWall(row,column,tiles){
+  let adjWalls = getNumAdj(row,column,tiles);
+  if (tiles[column][row] == 1){
+    if (adjWalls >= 4)
+      return 1
+    else if (adjWalls < 2)
+      return 0
+  }
+  else {
+    if (adjWalls >= 5)
+      return 1;
+  }
+  return 0;
+}
+
+function getNumAdj(row,column,tiles){
+  //return 0;
+  let startX = row - 1;
+  let startY = column - 1;
+  let endX = row + 1;
+  let endY = column + 1;
+
+  let wallAdj = 0;
+  let x = 0
+  let y = 0
+
+  for (x = startX; x <= endX; x++){
+    for (y = startY; y <= endY; y++){
+      if (!(x == row && y == column)){
+        if (isWall(x,y,tiles)){
+          wallAdj++;
+        }
+      }
+    }
+  }
+
+  return wallAdj;
+}
+
+function isWall(x, y, tiles){
+
+  if (checkBounds(x,y)){
+    return true;
+  }
+
+  if (tiles[y][x] == 1){
+    return true;
+  }
+
+  if (tiles[y][x] == 0){
+    return false;
+  }
+  return false;
+}
+
+function checkBounds(x, y){
+
+  var sizeX = MAPWIDTH / TILEWIDTH;
+  var sizeY = MAPHEIGHT / TILEHEIGHT;
+
+  if( x < 0 || y < 0 ){
+    return true;
+  }
+  else if( x > sizeX-1 || y > sizeY-1 ){
+    return true;
+  }
+  return false;
 }
