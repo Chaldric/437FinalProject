@@ -1,5 +1,5 @@
-var MAPWIDTH = 800
-var MAPHEIGHT = 608
+var MAPWIDTH = 1600//800
+var MAPHEIGHT = 1216//608
 var TILEWIDTH = 16
 var TILEHEIGHT = 16
 class Scene1 extends Phaser.Scene {
@@ -56,6 +56,7 @@ class Scene1 extends Phaser.Scene {
       }
 
     },this);
+
 
   }
 
