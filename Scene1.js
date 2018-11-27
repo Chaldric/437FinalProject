@@ -1,7 +1,13 @@
-var MAPWIDTH = 1600//800
-var MAPHEIGHT = 1216//608
+var MAPWIDTH = 1600
+var MAPHEIGHT = 1216
+//var MAPWIDTH = 800
+//var MAPHEIGHT = 608
 var TILEWIDTH = 16
 var TILEHEIGHT = 16
+
+var controls;
+
+
 class Scene1 extends Phaser.Scene {
   constructor() {
     super({key:"Scene1"});
@@ -13,7 +19,7 @@ class Scene1 extends Phaser.Scene {
   }
 
   create(){
-    this.image = this.add.image(400,300,'Ship').setDepth(2);
+    this.image = this.physics.add.image(400,300,'Ship').setDepth(2);
 
     this.level = createMap();
 
@@ -21,6 +27,26 @@ class Scene1 extends Phaser.Scene {
     var tiles = map.addTilesetImage("mario-tiles");
     //var layer = map.createStaticLayer(0, tiles, 0, 0);
     var layer = map.createDynamicLayer(0, tiles, 0, 0);
+
+    var cam = this.cameras.main;
+
+    cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
+
+    cam.startFollow(this.image, true);
+
+    var cursors = this.input.keyboard.createCursorKeys();
+
+
+    var controlConfig = {
+        camera: this.cameras.main,
+        left: cursors.left,
+        right: cursors.right,
+        up: cursors.up,
+        down: cursors.down,
+        speed: 0.5
+    };
+
+    //controls = new Phaser.Cameras.Controls.FixedKeyControl(controlConfig);
 
     this.input.keyboard.on('keyup_Q', function(event) {
       this.level = generateMap(this.level);
@@ -60,21 +86,36 @@ class Scene1 extends Phaser.Scene {
 
   }
 
-  update(delta){
+  update(time, delta){
     checkKeys(this);
+    //controls.update(delta);
   }
 
 }
 
 function checkKeys(scene){
-  if(scene.key_A.isDown)
-    scene.image.x--;
-  if(scene.key_D.isDown)
-    scene.image.x++;
-  if(scene.key_W.isDown)
-    scene.image.y--;
-  if(scene.key_S.isDown)
-    scene.image.y++;
+  if(scene.key_A.isDown){
+    //scene.image.x--;
+    scene.image.setVelocityX(-300);
+  }
+  else if(scene.key_D.isDown){
+    //scene.image.x++;
+    scene.image.setVelocityX(300);
+  }
+  else {
+    scene.image.setVelocityX(0);
+  }
+  if(scene.key_W.isDown){
+    //scene.image.y--;
+    scene.image.setVelocityY(-300);
+  }
+  else if(scene.key_S.isDown){
+    //scene.image.y++;
+    scene.image.setVelocityY(300);
+  }
+  else {
+    scene.image.setVelocityY(0);
+  }
 }
 
 function createMap(){
