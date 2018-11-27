@@ -4,7 +4,7 @@ class Scene1 extends Phaser.Scene {
   }
 
   preload(){
-    this.load.image('Ship', 'assets/player_ship.png')
+    player = this.load.image('Ship', 'assets/player_ship.png')
 
   }
 
@@ -37,6 +37,21 @@ class Scene1 extends Phaser.Scene {
       }
 
     },this);
+
+    const level = [
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   1,   1,   1,   0,   0,   0,   1,   1,   1,   0 ],
+    [  0,   1,   1,   1,   0,   0,   0,   1,   1,   1,   0 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   0,   0,   1,   1,   1,   0,   0,   0,   0,   0 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   0,   1,   1,   1,   1,   1,   0,   0,   0,   1 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   1 ],
+    [  1,   1,   1,   0,   0,   0,   0,   0,   1,   1,   1 ],
+    [  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1 ]
+  ];
+
   }
 
   update(delta){
