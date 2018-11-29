@@ -6,6 +6,11 @@ var TILEWIDTH = 16
 var TILEHEIGHT = 16
 
 var controls;
+var map, gMap;
+var player;
+var cursors;
+var groundLayer, goldLayer;
+var text;
 
 
 class Scene1 extends Phaser.Scene {
@@ -19,23 +24,28 @@ class Scene1 extends Phaser.Scene {
   }
 
   create(){
-    this.image = this.physics.add.image(400,300,'Ship').setDepth(2);
+    player = this.physics.add.image(400,300,'Ship').setDepth(2);
+    player.setCollideWorldBounds(true);
 
-    this.level = createMap();
+    createMap();
 
-    var map = this.make.tilemap({ data: this.level, tileWidth: 16, tileHeight: 16 });
-    var tiles = map.addTilesetImage("mario-tiles");
-    //var layer = map.createStaticLayer(0, tiles, 0, 0);
-    var layer = map.createDynamicLayer(0, tiles, 0, 0);
+    map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, 'Floor': 0, 'Wall': 1 });
+    var groundTiles = map.addTilesetImage("mario-tiles");
+    groundLayer = map.createStaticLayer(0, groundTiles, 0, 0);
+    //groundLayer.setCollisionByProperty([-1]);
+    //layer.setCollisionByProperty(1,True);
+
+    //groundLayer.putTilesAt(map, 0, 0);
+    //groundLayer.setCollision(0);
+
+    this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
+    this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
 
     var cam = this.cameras.main;
-
     cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
+    cam.startFollow(player, true);
 
-    cam.startFollow(this.image, true);
-
-    var cursors = this.input.keyboard.createCursorKeys();
-
+   cursors = this.input.keyboard.createCursorKeys();
 
     var controlConfig = {
         camera: this.cameras.main,
@@ -49,11 +59,7 @@ class Scene1 extends Phaser.Scene {
     //controls = new Phaser.Cameras.Controls.FixedKeyControl(controlConfig);
 
     this.input.keyboard.on('keyup_Q', function(event) {
-      this.level = generateMap(this.level);
-      var map = this.make.tilemap({ data: this.level, tileWidth: 16, tileHeight: 16 });
-      var tiles = map.addTilesetImage("mario-tiles");
-      //var layer = map.createStaticLayer(0, tiles, 0, 0);
-      var layer = map.createDynamicLayer(0, tiles, 0, 0);
+
     },this);
 
 
@@ -63,12 +69,12 @@ class Scene1 extends Phaser.Scene {
     this.key_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
     this.input.on('pointerdown', function(event) {
-      this.image.x = event.x;
-      this.image.y = event.y;
+      player.x = event.x;
+      player.y = event.y;
     },this);
 
     this.input.keyboard.on('keyup_P', function(event){
-      var physicsImage = this.physics.add.image(this.image.x, this.image.y, 'Ship');
+      var physicsImage = this.physics.add.image(player.x, player.y, 'Ship');
       physicsImage.setVelocity(Phaser.Math.RND.integerInRange(-100,100), -300);
     },this);
 
@@ -91,60 +97,62 @@ class Scene1 extends Phaser.Scene {
     //controls.update(delta);
   }
 
+
+
 }
 
 function checkKeys(scene){
   if(scene.key_A.isDown){
-    //scene.image.x--;
-    scene.image.setVelocityX(-300);
+    //player.x--;
+    player.setVelocityX(-300);
   }
   else if(scene.key_D.isDown){
-    //scene.image.x++;
-    scene.image.setVelocityX(300);
+    //player.x++;
+    player.setVelocityX(300);
   }
   else {
-    scene.image.setVelocityX(0);
+    player.setVelocityX(0);
   }
   if(scene.key_W.isDown){
-    //scene.image.y--;
-    scene.image.setVelocityY(-300);
+    //player.y--;
+    player.setVelocityY(-300);
   }
   else if(scene.key_S.isDown){
-    //scene.image.y++;
-    scene.image.setVelocityY(300);
+    //player.y++;
+    player.setVelocityY(300);
   }
   else {
-    scene.image.setVelocityY(0);
+    player.setVelocityY(0);
   }
 }
 
 function createMap(){
   var sizeX = MAPWIDTH / TILEWIDTH;
   var sizeY = MAPHEIGHT / TILEHEIGHT;
-  var level = new Array(sizeX);
+  gMap = new Array(sizeX);
   for (i = 0; i < sizeX; i++)
-    level[i] = new Array(sizeY);
+    gMap[i] = new Array(sizeY);
 
   for (x = 1; x < sizeX-1; x++){
     for (y = 1; y < sizeY-1; y++){
       if (Phaser.Math.RND.integerInRange(0,100) < 40)
-        level[y][x] = 1;
+        gMap[y][x] = 1;
       else
-        level[y][x] = 0;
+        gMap[y][x] = 0;
     }
   }
 
   for (x = 0; x < sizeX; x++)
-    level[0][x] = level[sizeY-1][x] = 1;
+    gMap[0][x] = gMap[sizeY-1][x] = 1;
 
   for (y = 0; y < sizeY; y++)
-    level[y][0] = level[y][sizeX-1] = 1;
+    gMap[y][0] = gMap[y][sizeX-1] = 1;
 
   for (g = 0; g < 6; g++)
-    generateMap(level);
-  //generateMap(level);
+    generateMap(gMap);
+  //generateMap(gMap);
 
-  //level[x][y] = Phaser.Math.RND.integerInRange(0,39)
+  //gMap[x][y] = Phaser.Math.RND.integerInRange(0,39)
 
 
    /*[
@@ -161,7 +169,7 @@ function createMap(){
     [ 39,  39,  39,  39,  39,  39,  39,  39,  39,  39,  39 ]
   ];*/
 
-  return level;
+  return gMap;
 }
 
 function generateMap(tiles){
