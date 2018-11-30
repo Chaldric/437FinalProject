@@ -154,6 +154,7 @@ function createMap(){
     generateMap(gMap);
   //generateMap(gMap);
 
+/*
   gLayer = new Array(sizeX);
   for (i = 0; i < sizeX; i++)
     gLayer[i] = new Array(sizeY);
@@ -180,7 +181,7 @@ function createMap(){
   //gMap[x][y] = Phaser.Math.RND.integerInRange(0,39)
 
 
-   /*[
+   [
     [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
     [  0,   1,   2,   3,   0,   0,   0,   1,   2,   3,   0 ],
     [  0,   5,   6,   7,   0,   0,   0,   5,   6,   7,   0 ],

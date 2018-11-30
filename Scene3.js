@@ -5,6 +5,11 @@ var MAPHEIGHT = 1216
 var TILEWIDTH = 16
 var TILEHEIGHT = 16
 
+var TILE_MAPPING = {
+  FLOOR: 452,
+  WALL: 341
+}
+
 var controls;
 var map, gMap;
 var gLayer, wLayer;
@@ -21,7 +26,8 @@ class Scene3 extends Phaser.Scene {
 
   preload(){
     this.load.image('Ship', 'assets/pShip.png')
-    this.load.image('tiles', 'assets/marioTilemap2B.png');
+    this.load.image('tiles', 'assets/roguelikeDungeon_transparent.png');
+    //this.load.image('tiles', 'assets/marioTilemap2B.png');
   }
 
   create(){
@@ -31,7 +37,7 @@ class Scene3 extends Phaser.Scene {
     createMap();
 
     map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
-    var tiles = map.addTilesetImage("tiles");
+    var tiles = map.addTilesetImage('tiles',null ,16,16,0,1,null,null);
 
     groundLayer = map.createBlankDynamicLayer('Ground', tiles);
     goldLayer = map.createBlankDynamicLayer('Stuff', tiles);
@@ -39,8 +45,8 @@ class Scene3 extends Phaser.Scene {
     groundLayer.putTilesAt(gMap, 0, 0);
     //groundLayer.fill(0);
     //groundLayer.putTileAt(1,0,0)
-    groundLayer.setCollision(1);
-    goldLayer.putTileAt(1,20,20)
+    groundLayer.setCollision(TILE_MAPPING.WALL);
+    goldLayer.putTileAt(TILE_MAPPING.WALL,20,20)
 
 
     this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
@@ -136,22 +142,61 @@ function createMap(){
   for (x = 1; x < sizeX-1; x++){
     for (y = 1; y < sizeY-1; y++){
       if (Phaser.Math.RND.integerInRange(0,100) < 40)
-        gMap[y][x] = 1;
+        gMap[y][x] = TILE_MAPPING.WALL;
       else
-        gMap[y][x] = 0;
+        gMap[y][x] = TILE_MAPPING.FLOOR;
     }
   }
 
   for (x = 0; x < sizeX; x++)
-    gMap[0][x] = gMap[sizeY-1][x] = 1;
+    gMap[0][x] = gMap[sizeY-1][x] = TILE_MAPPING.WALL;
 
   for (y = 0; y < sizeY; y++)
-    gMap[y][0] = gMap[y][sizeX-1] = 1;
+    gMap[y][0] = gMap[y][sizeX-1] = TILE_MAPPING.WALL;
 
   for (g = 0; g < 6; g++)
     generateMap(gMap);
 
+/*
+  gLayer = new Array(sizeX);
+  for (i = 0; i < sizeX; i++)
+    gLayer[i] = new Array(sizeY);
 
+  wLayer = new Array(sizeX);
+  for (i = 0; i < sizeX; i++)
+    wLayer[i] = new Array(sizeY);
+
+  for (x = 0; x < sizeX; x++){
+    for (y = 0; y < sizeY; y++){
+      if (gMap[y][x] == 1){
+        gLayer[y][x] = 1;
+        wLayer[y][x] = null;
+      }
+      else if (gMap[y][x] == 0) {
+        wLayer[y][x] = 1;
+        gLayer[y][x] = null;
+      }
+      else {
+
+      }
+    }
+  }
+  //gMap[x][y] = Phaser.Math.RND.integerInRange(0,39)
+
+
+   [
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   1,   2,   3,   0,   0,   0,   1,   2,   3,   0 ],
+    [  0,   5,   6,   7,   0,   0,   0,   5,   6,   7,   0 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   0,   0,  14,  13,  14,   0,   0,   0,   0,   0 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
+    [  0,   0,  14,  14,  14,  14,  14,   0,   0,   0,  15 ],
+    [  0,   0,   0,   0,   0,   0,   0,   0,   0,  15,  15 ],
+    [ 35,  36,  37,   0,   0,   0,   0,   0,  15,  15,  15 ],
+    [ 39,  39,  39,  39,  39,  39,  39,  39,  39,  39,  39 ]
+  ];*/
 
   return gMap;
 }
@@ -172,17 +217,17 @@ function generateMap(tiles){
 
 function placeWall(row,column,tiles){
   let adjWalls = getNumAdj(row,column,tiles);
-  if (tiles[column][row] == 1){
+  if (tiles[column][row] == TILE_MAPPING.WALL){
     if (adjWalls >= 4)
-      return 1
+      return TILE_MAPPING.WALL
     else if (adjWalls < 2)
-      return 0
+      return TILE_MAPPING.FLOOR
   }
   else {
     if (adjWalls >= 5)
-      return 1;
+      return TILE_MAPPING.WALL;
   }
-  return 0;
+  return TILE_MAPPING.FLOOR;
 }
 
 function getNumAdj(row,column,tiles){
@@ -215,11 +260,11 @@ function isWall(x, y, tiles){
     return true;
   }
 
-  if (tiles[y][x] == 1){
+  if (tiles[y][x] == TILE_MAPPING.WALL){
     return true;
   }
 
-  if (tiles[y][x] == 0){
+  if (tiles[y][x] == TILE_MAPPING.FLOOR){
     return false;
   }
   return false;
