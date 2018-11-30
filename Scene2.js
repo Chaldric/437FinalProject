@@ -30,13 +30,17 @@ class Scene2 extends Phaser.Scene{
   }
 
 }
+
+
+
+/*
 import Phaser from "phaser";
 import Dungeon from "@mikewesthad/dungeon";
 import Player from "./player.js";
 
-/**
+/* *
  * Scene that generates a new dungeon
- */
+ * /
 export default class DungeonScene extends Phaser.Scene {
   preload() {
     this.load.image("tiles", "../assets/tilesets/buch-tileset-48px-extruded.png");
@@ -107,3 +111,4 @@ export default class DungeonScene extends Phaser.Scene {
     this.player.update();
   }
 }
+*/

@@ -1,29 +1,240 @@
-class Scene3 extends Phaser.Scene{
-  constructor(){
+var MAPWIDTH = 1600
+var MAPHEIGHT = 1216
+//var MAPWIDTH = 800
+//var MAPHEIGHT = 608
+var TILEWIDTH = 16
+var TILEHEIGHT = 16
+
+var controls;
+var map, gMap;
+var gLayer, wLayer;
+var player;
+var cursors;
+var groundLayer, goldLayer;
+var text;
+
+
+class Scene3 extends Phaser.Scene {
+  constructor() {
     super({key:"Scene3"});
   }
 
   preload(){
-      this.load.audio('test',['assets/Laser-weapon.ogg']);
+    this.load.image('Ship', 'assets/pShip.png')
+    this.load.image('tiles', 'assets/marioTilemap2B.png');
   }
 
   create(){
-    this.soundFX = this.sound.add("test", {loop: "true"});
-    this.soundFX.play();
+    player = this.physics.add.image(400,300,'Ship').setDepth(2);
+    player.setCollideWorldBounds(true);
 
-    this.soundFX.rate = 0.5
+    createMap();
 
-    this.input.Keyboard.on("keydown_L", function(event){
-      this.soundFX.loop = !this.soundFX.loop;
-      if(this.soundFX.loop){
-        this.soundFX.play();
+    map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
+    var tiles = map.addTilesetImage("tiles");
+
+    groundLayer = map.createBlankDynamicLayer('Ground', tiles);
+    goldLayer = map.createBlankDynamicLayer('Stuff', tiles);
+
+    groundLayer.putTilesAt(gMap, 0, 0);
+    //groundLayer.fill(0);
+    //groundLayer.putTileAt(1,0,0)
+    groundLayer.setCollision(1);
+    goldLayer.putTileAt(1,20,20)
+
+
+    this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
+    this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
+
+    this.physics.add.collider(groundLayer, player);
+
+    var cam = this.cameras.main;
+    cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
+    cam.startFollow(player, true);
+
+   cursors = this.input.keyboard.createCursorKeys();
+
+    var controlConfig = {
+        camera: this.cameras.main,
+        left: cursors.left,
+        right: cursors.right,
+        up: cursors.up,
+        down: cursors.down,
+        speed: 0.5
+    };
+
+    //controls = new Phaser.Cameras.Controls.FixedKeyControl(controlConfig);
+
+    this.input.keyboard.on('keyup_Q', function(event) {
+
+    },this);
+
+
+    this.key_A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.key_D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.key_W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.key_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+
+    this.input.on('pointerdown', function(event) {
+      player.x = event.x;
+      player.y = event.y;
+    },this);
+
+    this.input.keyboard.on('keyup_P', function(event){
+      var physicsImage = this.physics.add.image(player.x, player.y, 'Ship');
+      physicsImage.setVelocity(Phaser.Math.RND.integerInRange(-100,100), -300);
+    },this);
+
+    this.input.keyboard.on('keyup', function(event){
+      if(event.key == "2"){
+        this.scene.start("Scene2");
       }
+
+      if(event.key == "3"){
+        this.scene.start("Scene3");
+      }
+
     },this);
 
-    this.input.keyboard.on("keydown_P", function(event){
-      if(this.soundFX.isPlaying) this.soundFX.pause();
-      else this.soundFX.resume();
-    },this);
   }
 
+  update(time, delta){
+    checkKeys(this);
+    //controls.update(delta);
+  }
+
+}
+
+function checkKeys(scene){
+  if(scene.key_A.isDown){
+    player.setVelocityX(-300);
+  }
+  else if(scene.key_D.isDown){
+    player.setVelocityX(300);
+  }
+  else {
+    player.setVelocityX(0);
+  }
+  if(scene.key_W.isDown){
+    player.setVelocityY(-300);
+  }
+  else if(scene.key_S.isDown){
+    player.setVelocityY(300);
+  }
+  else {
+    player.setVelocityY(0);
+  }
+}
+
+function createMap(){
+  var sizeX = MAPWIDTH / TILEWIDTH;
+  var sizeY = MAPHEIGHT / TILEHEIGHT;
+  gMap = new Array(sizeX);
+  for (i = 0; i < sizeX; i++)
+    gMap[i] = new Array(sizeY);
+
+  for (x = 1; x < sizeX-1; x++){
+    for (y = 1; y < sizeY-1; y++){
+      if (Phaser.Math.RND.integerInRange(0,100) < 40)
+        gMap[y][x] = 1;
+      else
+        gMap[y][x] = 0;
+    }
+  }
+
+  for (x = 0; x < sizeX; x++)
+    gMap[0][x] = gMap[sizeY-1][x] = 1;
+
+  for (y = 0; y < sizeY; y++)
+    gMap[y][0] = gMap[y][sizeX-1] = 1;
+
+  for (g = 0; g < 6; g++)
+    generateMap(gMap);
+
+
+
+  return gMap;
+}
+
+function generateMap(tiles){
+
+  var sizeX = MAPWIDTH / TILEWIDTH;
+  var sizeY = MAPHEIGHT / TILEHEIGHT;
+
+  for (x = 1; x < sizeX-1; x++){
+    for (y = 1; y < sizeY-1; y++){
+      tiles[y][x] = placeWall(x,y,tiles);
+    }
+  }
+
+  return tiles;
+}
+
+function placeWall(row,column,tiles){
+  let adjWalls = getNumAdj(row,column,tiles);
+  if (tiles[column][row] == 1){
+    if (adjWalls >= 4)
+      return 1
+    else if (adjWalls < 2)
+      return 0
+  }
+  else {
+    if (adjWalls >= 5)
+      return 1;
+  }
+  return 0;
+}
+
+function getNumAdj(row,column,tiles){
+  //return 0;
+  let startX = row - 1;
+  let startY = column - 1;
+  let endX = row + 1;
+  let endY = column + 1;
+
+  let wallAdj = 0;
+  let x = 0
+  let y = 0
+
+  for (x = startX; x <= endX; x++){
+    for (y = startY; y <= endY; y++){
+      if (!(x == row && y == column)){
+        if (isWall(x,y,tiles)){
+          wallAdj++;
+        }
+      }
+    }
+  }
+
+  return wallAdj;
+}
+
+function isWall(x, y, tiles){
+
+  if (checkBounds(x,y)){
+    return true;
+  }
+
+  if (tiles[y][x] == 1){
+    return true;
+  }
+
+  if (tiles[y][x] == 0){
+    return false;
+  }
+  return false;
+}
+
+function checkBounds(x, y){
+
+  var sizeX = MAPWIDTH / TILEWIDTH;
+  var sizeY = MAPHEIGHT / TILEHEIGHT;
+
+  if( x < 0 || y < 0 ){
+    return true;
+  }
+  else if( x > sizeX-1 || y > sizeY-1 ){
+    return true;
+  }
+  return false;
 }

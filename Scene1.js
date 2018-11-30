@@ -7,6 +7,7 @@ var TILEHEIGHT = 16
 
 var controls;
 var map, gMap;
+var gLayer, wLayer;
 var player;
 var cursors;
 var groundLayer, goldLayer;
@@ -29,14 +30,15 @@ class Scene1 extends Phaser.Scene {
 
     createMap();
 
-    map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, 'Floor': 0, 'Wall': 1 });
+    //map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
+    map = this.make.tilemap({ data: gLayer, tileWidth: 16, tileHeight: 16, insertNull: true });
     var groundTiles = map.addTilesetImage("mario-tiles");
     groundLayer = map.createStaticLayer(0, groundTiles, 0, 0);
     //groundLayer.setCollisionByProperty([-1]);
     //layer.setCollisionByProperty(1,True);
 
     //groundLayer.putTilesAt(map, 0, 0);
-    //groundLayer.setCollision(0);
+    groundLayer.setCollision(0);
 
     this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
     this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
@@ -152,6 +154,29 @@ function createMap(){
     generateMap(gMap);
   //generateMap(gMap);
 
+  gLayer = new Array(sizeX);
+  for (i = 0; i < sizeX; i++)
+    gLayer[i] = new Array(sizeY);
+
+  wLayer = new Array(sizeX);
+  for (i = 0; i < sizeX; i++)
+    wLayer[i] = new Array(sizeY);
+
+  for (x = 0; x < sizeX; x++){
+    for (y = 0; y < sizeY; y++){
+      if (gMap[y][x] == 1){
+        gLayer[y][x] = 1;
+        wLayer[y][x] = null;
+      }
+      else if (gMap[y][x] == 0) {
+        wLayer[y][x] = 1;
+        gLayer[y][x] = null;
+      }
+      else {
+
+      }
+    }
+  }
   //gMap[x][y] = Phaser.Math.RND.integerInRange(0,39)
 
 
