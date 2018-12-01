@@ -14,11 +14,11 @@ var TILE_MAPPING = {
 var controls;
 var map, gMap;
 var gLayer, wLayer;
-var player;
+var player, seg;
 var cursors;
 var groundLayer, goldLayer;
 var score = 0;
-var text;
+var text, playerVelX;
 
 
 class Scene3 extends Phaser.Scene {
@@ -27,15 +27,13 @@ class Scene3 extends Phaser.Scene {
   }
 
   preload(){
-    this.load.image('Ship', 'assets/pShip.png')
+    this.load.image('ship', 'assets/pShip.png');
+    this.load.spritesheet('coin', 'assets/Coins/FullCoins.png', { frameWidth: 15, frameHeight: 16, spacing: 1 });
     this.load.image('tiles', 'assets/roguelikeDungeon_transparent.png');
     //this.load.image('tiles', 'assets/marioTilemap2B.png');
   }
 
   create(){
-    player = this.physics.add.image(400,300,'Ship').setDepth(2);
-    player.setCollideWorldBounds(true);
-
     createMap();
 
     map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
@@ -49,19 +47,40 @@ class Scene3 extends Phaser.Scene {
     //groundLayer.fill(0);
     //groundLayer.putTileAt(1,0,0)
     groundLayer.setCollision(TILE_MAPPING.WALL);
-
-    spawnGold(20,20);
     //goldLayer.putTileAt(TILE_MAPPING.GOLD,20,20)
-
 
     this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
     this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
 
+    player = this.physics.add.sprite(400,300,'coin').setDepth(2).setScale(2);
+    player.setCollideWorldBounds(true);
+
+    seg = new Array(20);
+    for (i = 0; i < 5; i++){
+      seg[i] = this.physics.add.sprite(player.x + i*10,player.y,'coin').setDepth(2);//this.physics.add.image(player.x + 10,player.y,'ship');
+    }
+
     this.physics.add.collider(groundLayer, player);
 
+    //spawnGold(20,20);
+
     goldLayer.setTileIndexCallback(TILE_MAPPING.GOLD, collectCoin, this);
+
     this.physics.add.overlap(player, goldLayer);
 
+    this.anims.create({
+      key: 'walk',
+      frames: this.anims.generateFrameNumbers('coin',  {start: 0, end: 7 }),
+      frameRate: 10,
+      repeat: -1
+    });
+/*
+    this.anims.create({
+      key: 'idle',
+      frames: [{key: 'player', frame: 'p1_stand'}],
+      frameRate: 10,
+    });
+*/
     var cam = this.cameras.main;
     cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
     cam.startFollow(player, true);
@@ -73,6 +92,12 @@ class Scene3 extends Phaser.Scene {
        fill: '#000000'
     });
     text.setScrollFactor(0);
+
+    playerVelX = this.add.text(20, 40, '0', {
+       fontSize: '20px',
+       fill: '#000000'
+    });
+    playerVelX.setScrollFactor(0);
 
     var controlConfig = {
         camera: this.cameras.main,
@@ -119,8 +144,11 @@ class Scene3 extends Phaser.Scene {
   }
 
   update(time, delta){
+    updateSeg();
     checkKeys(this);
+    //updateSeg();
     //controls.update(delta);
+    playerVelX.setText(player.x + player.y);
   }
 
 }
@@ -128,9 +156,13 @@ class Scene3 extends Phaser.Scene {
 function checkKeys(scene){
   if(scene.key_A.isDown){
     player.setVelocityX(-300);
+    player.anims.play('walk',true);
+    player.flipX = true;
   }
   else if(scene.key_D.isDown){
     player.setVelocityX(300);
+    player.anims.play('walk',true);
+    player.flipX = false;
   }
   else {
     player.setVelocityX(0);
@@ -155,7 +187,34 @@ function collectCoin(sprite, tile) {
 }
 
 function spawnGold(posX,posY){
-  goldLayer.putTileAt(TILE_MAPPING.GOLD,posX,posY)
+  for (x = 1; x < sizeX-1; x++){
+    for (y = 1; y < sizeY-1; y++){
+      if (Phaser.Math.RND.integerInRange(0,100) < 40)
+        gMap[y][x] = TILE_MAPPING.WALL;
+      else
+        gMap[y][x] = TILE_MAPPING.FLOOR;
+    }
+  }
+  goldLayer.putTileAt(TILE_MAPPING.GOLD,Phaser.Math.RND.integerInRange(0,MAPWIDTH),Phaser.Math.RND.integerInRange(0,MAPHEIGHT))
+}
+
+function updateSeg(){
+  seg[0].x = player.x + 10;
+  seg[0].y = player.y;
+  /*
+  seg[1].x = seg[0].x + 10;
+  seg[1].y = seg[0].y;
+  seg[2].x = seg[1].x + 10;
+  seg[2].y = seg[1].y;
+  seg[3].x = seg[2].x + 10;
+  seg[3].y = seg[2].y;
+  seg[4].x = seg[3].x + 10;
+  seg[4].y = seg[3].y;*/
+  for(i = 1; i < 5; i++){
+    seg[i].x = seg[i-1].x + 10;
+    seg[i].y = seg[i-1].y;
+  }
+
 }
 
 function createMap(){
