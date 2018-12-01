@@ -7,7 +7,8 @@ var TILEHEIGHT = 16
 
 var TILE_MAPPING = {
   FLOOR: 452,
-  WALL: 341
+  WALL: 341,
+  GOLD: 393
 }
 
 var controls;
@@ -16,6 +17,7 @@ var gLayer, wLayer;
 var player;
 var cursors;
 var groundLayer, goldLayer;
+var score = 0;
 var text;
 
 
@@ -37,16 +39,19 @@ class Scene3 extends Phaser.Scene {
     createMap();
 
     map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
-    var tiles = map.addTilesetImage('tiles',null ,16,16,0,1,null,null);
+    var worldTiles = map.addTilesetImage('tiles',null ,16,16,0,1,null,null);
+    var stuffTiles = map.addTilesetImage('tiles',null ,16,16,0,1,null,null);
 
-    groundLayer = map.createBlankDynamicLayer('Ground', tiles);
-    goldLayer = map.createBlankDynamicLayer('Stuff', tiles);
+    groundLayer = map.createBlankDynamicLayer('Ground', worldTiles);
+    goldLayer = map.createBlankDynamicLayer('Stuff', stuffTiles);
 
     groundLayer.putTilesAt(gMap, 0, 0);
     //groundLayer.fill(0);
     //groundLayer.putTileAt(1,0,0)
     groundLayer.setCollision(TILE_MAPPING.WALL);
-    goldLayer.putTileAt(TILE_MAPPING.WALL,20,20)
+
+    spawnGold(20,20);
+    //goldLayer.putTileAt(TILE_MAPPING.GOLD,20,20)
 
 
     this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
@@ -54,11 +59,20 @@ class Scene3 extends Phaser.Scene {
 
     this.physics.add.collider(groundLayer, player);
 
+    goldLayer.setTileIndexCallback(TILE_MAPPING.GOLD, collectCoin, this);
+    this.physics.add.overlap(player, goldLayer);
+
     var cam = this.cameras.main;
     cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
     cam.startFollow(player, true);
 
-   cursors = this.input.keyboard.createCursorKeys();
+    cursors = this.input.keyboard.createCursorKeys();
+
+    text = this.add.text(20, 20, '0', {
+       fontSize: '20px',
+       fill: '#000000'
+    });
+    text.setScrollFactor(0);
 
     var controlConfig = {
         camera: this.cameras.main,
@@ -132,6 +146,18 @@ function checkKeys(scene){
   }
 }
 
+function collectCoin(sprite, tile) {
+  goldLayer.removeTileAt(tile.x, tile.y);
+  score++;
+  text.setText(score);
+  spawnGold(25,25);
+  return false;
+}
+
+function spawnGold(posX,posY){
+  goldLayer.putTileAt(TILE_MAPPING.GOLD,posX,posY)
+}
+
 function createMap(){
   var sizeX = MAPWIDTH / TILEWIDTH;
   var sizeY = MAPHEIGHT / TILEHEIGHT;
@@ -156,7 +182,6 @@ function createMap(){
 
   for (g = 0; g < 6; g++)
     generateMap(gMap);
-
 /*
   gLayer = new Array(sizeX);
   for (i = 0; i < sizeX; i++)
@@ -180,24 +205,8 @@ function createMap(){
 
       }
     }
-  }
+  }*/
   //gMap[x][y] = Phaser.Math.RND.integerInRange(0,39)
-
-
-   [
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   1,   2,   3,   0,   0,   0,   1,   2,   3,   0 ],
-    [  0,   5,   6,   7,   0,   0,   0,   5,   6,   7,   0 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   0,   0,  14,  13,  14,   0,   0,   0,   0,   0 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   0,  14,  14,  14,  14,  14,   0,   0,   0,  15 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,  15,  15 ],
-    [ 35,  36,  37,   0,   0,   0,   0,   0,  15,  15,  15 ],
-    [ 39,  39,  39,  39,  39,  39,  39,  39,  39,  39,  39 ]
-  ];*/
-
   return gMap;
 }
 
