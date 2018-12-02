@@ -55,6 +55,8 @@ class Scene3 extends Phaser.Scene {
     player = this.physics.add.sprite(400,300,'coin').setDepth(2).setScale(2);
     player.setCollideWorldBounds(true);
 
+    console.log(player);
+
     seg = new Array(20);
     for (i = 0; i < 5; i++){
       seg[i] = this.physics.add.sprite(player.x + i*10,player.y,'coin').setDepth(2);//this.physics.add.image(player.x + 10,player.y,'ship');
@@ -148,7 +150,7 @@ class Scene3 extends Phaser.Scene {
     checkKeys(this);
     //updateSeg();
     //controls.update(delta);
-    playerVelX.setText(player.x + player.y);
+    playerVelX.setText(player._dx);
   }
 
 }

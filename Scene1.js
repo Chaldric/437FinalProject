@@ -1,17 +1,13 @@
-var MAPWIDTH = 1600
-var MAPHEIGHT = 1216
-//var MAPWIDTH = 800
-//var MAPHEIGHT = 608
-var TILEWIDTH = 16
-var TILEHEIGHT = 16
-
-var controls;
-var map, gMap;
-var gLayer, wLayer;
-var player;
+var snake;
+var food;
 var cursors;
-var groundLayer, goldLayer;
-var text;
+
+//  Direction consts
+var UP = 0;
+var DOWN = 1;
+var LEFT = 2;
+var RIGHT = 3;
+
 
 
 class Scene1 extends Phaser.Scene {
@@ -19,264 +15,313 @@ class Scene1 extends Phaser.Scene {
     super({key:"Scene1"});
   }
 
-  preload(){
-    this.load.image('Ship', 'assets/pShip.png')
-    this.load.image('mario-tiles', 'assets/marioTilemap2B.png');
+  preload ()
+  {
+      this.load.image('food', 'assets/pShip.png');
+      this.load.image('body', 'assets/pShip.png');
   }
 
-  create(){
-    player = this.physics.add.image(400,300,'Ship').setDepth(2);
-    player.setCollideWorldBounds(true);
+create ()
+{
+    var Food = new Phaser.Class({
 
-    createMap();
+        Extends: Phaser.GameObjects.Image,
 
-    //map = this.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
-    map = this.make.tilemap({ data: gLayer, tileWidth: 16, tileHeight: 16, insertNull: true });
-    var groundTiles = map.addTilesetImage("mario-tiles");
-    groundLayer = map.createStaticLayer(0, groundTiles, 0, 0);
-    //groundLayer.setCollisionByProperty([-1]);
-    //layer.setCollisionByProperty(1,True);
+        initialize:
 
-    //groundLayer.putTilesAt(map, 0, 0);
-    groundLayer.setCollision(0);
+        function Food (scene, x, y)
+        {
+            Phaser.GameObjects.Image.call(this, scene)
 
-    this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
-    this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
+            this.setTexture('food');
+            this.setPosition(x * 16, y * 16);
+            this.setOrigin(0);
 
-    var cam = this.cameras.main;
-    cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
-    cam.startFollow(player, true);
+            this.total = 0;
 
-   cursors = this.input.keyboard.createCursorKeys();
+            scene.children.add(this);
+        },
 
-    var controlConfig = {
-        camera: this.cameras.main,
-        left: cursors.left,
-        right: cursors.right,
-        up: cursors.up,
-        down: cursors.down,
-        speed: 0.5
-    };
-
-    //controls = new Phaser.Cameras.Controls.FixedKeyControl(controlConfig);
-
-    this.input.keyboard.on('keyup_Q', function(event) {
-
-    },this);
-
-
-    this.key_A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.key_D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    this.key_W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.key_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-
-    this.input.on('pointerdown', function(event) {
-      player.x = event.x;
-      player.y = event.y;
-    },this);
-
-    this.input.keyboard.on('keyup_P', function(event){
-      var physicsImage = this.physics.add.image(player.x, player.y, 'Ship');
-      physicsImage.setVelocity(Phaser.Math.RND.integerInRange(-100,100), -300);
-    },this);
-
-    this.input.keyboard.on('keyup', function(event){
-      if(event.key == "2"){
-        this.scene.start("Scene2");
-      }
-
-      if(event.key == "3"){
-        this.scene.start("Scene3");
-      }
-
-    },this);
-
-
-  }
-
-  update(time, delta){
-    checkKeys(this);
-    //controls.update(delta);
-  }
-
-
-
-}
-
-function checkKeys(scene){
-  if(scene.key_A.isDown){
-    //player.x--;
-    player.setVelocityX(-300);
-  }
-  else if(scene.key_D.isDown){
-    //player.x++;
-    player.setVelocityX(300);
-  }
-  else {
-    player.setVelocityX(0);
-  }
-  if(scene.key_W.isDown){
-    //player.y--;
-    player.setVelocityY(-300);
-  }
-  else if(scene.key_S.isDown){
-    //player.y++;
-    player.setVelocityY(300);
-  }
-  else {
-    player.setVelocityY(0);
-  }
-}
-
-function createMap(){
-  var sizeX = MAPWIDTH / TILEWIDTH;
-  var sizeY = MAPHEIGHT / TILEHEIGHT;
-  gMap = new Array(sizeX);
-  for (i = 0; i < sizeX; i++)
-    gMap[i] = new Array(sizeY);
-
-  for (x = 1; x < sizeX-1; x++){
-    for (y = 1; y < sizeY-1; y++){
-      if (Phaser.Math.RND.integerInRange(0,100) < 40)
-        gMap[y][x] = 1;
-      else
-        gMap[y][x] = 0;
-    }
-  }
-
-  for (x = 0; x < sizeX; x++)
-    gMap[0][x] = gMap[sizeY-1][x] = 1;
-
-  for (y = 0; y < sizeY; y++)
-    gMap[y][0] = gMap[y][sizeX-1] = 1;
-
-  for (g = 0; g < 6; g++)
-    generateMap(gMap);
-  //generateMap(gMap);
-
-/*
-  gLayer = new Array(sizeX);
-  for (i = 0; i < sizeX; i++)
-    gLayer[i] = new Array(sizeY);
-
-  wLayer = new Array(sizeX);
-  for (i = 0; i < sizeX; i++)
-    wLayer[i] = new Array(sizeY);
-
-  for (x = 0; x < sizeX; x++){
-    for (y = 0; y < sizeY; y++){
-      if (gMap[y][x] == 1){
-        gLayer[y][x] = 1;
-        wLayer[y][x] = null;
-      }
-      else if (gMap[y][x] == 0) {
-        wLayer[y][x] = 1;
-        gLayer[y][x] = null;
-      }
-      else {
-
-      }
-    }
-  }
-  //gMap[x][y] = Phaser.Math.RND.integerInRange(0,39)
-
-
-   [
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   1,   2,   3,   0,   0,   0,   1,   2,   3,   0 ],
-    [  0,   5,   6,   7,   0,   0,   0,   5,   6,   7,   0 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   0,   0,  14,  13,  14,   0,   0,   0,   0,   0 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 ],
-    [  0,   0,  14,  14,  14,  14,  14,   0,   0,   0,  15 ],
-    [  0,   0,   0,   0,   0,   0,   0,   0,   0,  15,  15 ],
-    [ 35,  36,  37,   0,   0,   0,   0,   0,  15,  15,  15 ],
-    [ 39,  39,  39,  39,  39,  39,  39,  39,  39,  39,  39 ]
-  ];*/
-
-  return gMap;
-}
-
-function generateMap(tiles){
-
-  var sizeX = MAPWIDTH / TILEWIDTH;
-  var sizeY = MAPHEIGHT / TILEHEIGHT;
-
-  for (x = 1; x < sizeX-1; x++){
-    for (y = 1; y < sizeY-1; y++){
-      tiles[y][x] = placeWall(x,y,tiles);
-    }
-  }
-
-  return tiles;
-}
-
-function placeWall(row,column,tiles){
-  let adjWalls = getNumAdj(row,column,tiles);
-  if (tiles[column][row] == 1){
-    if (adjWalls >= 4)
-      return 1
-    else if (adjWalls < 2)
-      return 0
-  }
-  else {
-    if (adjWalls >= 5)
-      return 1;
-  }
-  return 0;
-}
-
-function getNumAdj(row,column,tiles){
-  //return 0;
-  let startX = row - 1;
-  let startY = column - 1;
-  let endX = row + 1;
-  let endY = column + 1;
-
-  let wallAdj = 0;
-  let x = 0
-  let y = 0
-
-  for (x = startX; x <= endX; x++){
-    for (y = startY; y <= endY; y++){
-      if (!(x == row && y == column)){
-        if (isWall(x,y,tiles)){
-          wallAdj++;
+        eat: function ()
+        {
+            this.total++;
         }
-      }
+
+    });
+
+    var Snake = new Phaser.Class({
+
+        initialize:
+
+        function Snake (scene, x, y)
+        {
+            this.headPosition = new Phaser.Geom.Point(x, y);
+
+            this.body = scene.add.group();
+
+            this.head = this.body.create(x * 16, y * 16, 'body');
+            this.head.setOrigin(0);
+
+            this.alive = true;
+
+            this.speed = 100;
+
+            this.moveTime = 0;
+
+            this.tail = new Phaser.Geom.Point(x, y);
+
+            this.heading = RIGHT;
+            this.direction = RIGHT;
+        },
+
+        update: function (time)
+        {
+            if (time >= this.moveTime)
+            {
+                return this.move(time);
+            }
+        },
+
+        faceLeft: function ()
+        {
+            if (this.direction === UP || this.direction === DOWN)
+            {
+                this.heading = LEFT;
+            }
+        },
+
+        faceRight: function ()
+        {
+            if (this.direction === UP || this.direction === DOWN)
+            {
+                this.heading = RIGHT;
+            }
+        },
+
+        faceUp: function ()
+        {
+            if (this.direction === LEFT || this.direction === RIGHT)
+            {
+                this.heading = UP;
+            }
+        },
+
+        faceDown: function ()
+        {
+            if (this.direction === LEFT || this.direction === RIGHT)
+            {
+                this.heading = DOWN;
+            }
+        },
+
+        move: function (time)
+        {
+            /**
+            * Based on the heading property (which is the direction the pgroup pressed)
+            * we update the headPosition value accordingly.
+            *
+            * The Math.wrap call allow the snake to wrap around the screen, so when
+            * it goes off any of the sides it re-appears on the other.
+            */
+            switch (this.heading)
+            {
+                case LEFT:
+                    this.headPosition.x = Phaser.Math.Wrap(this.headPosition.x - 1, 0, 40);
+                    break;
+
+                case RIGHT:
+                    this.headPosition.x = Phaser.Math.Wrap(this.headPosition.x + 1, 0, 40);
+                    break;
+
+                case UP:
+                    this.headPosition.y = Phaser.Math.Wrap(this.headPosition.y - 1, 0, 30);
+                    break;
+
+                case DOWN:
+                    this.headPosition.y = Phaser.Math.Wrap(this.headPosition.y + 1, 0, 30);
+                    break;
+            }
+
+            this.direction = this.heading;
+
+            //  Update the body segments and place the last coordinate into this.tail
+            Phaser.Actions.ShiftPosition(this.body.getChildren(), this.headPosition.x * 16, this.headPosition.y * 16, 1, this.tail);
+
+            //  Check to see if any of the body pieces have the same x/y as the head
+            //  If they do, the head ran into the body
+
+            var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
+
+            if (hitBody)
+            {
+                console.log('dead');
+
+                this.alive = false;
+
+                return false;
+            }
+            else
+            {
+                //  Update the timer ready for the next movement
+                this.moveTime = time + this.speed;
+
+                return true;
+            }
+        },
+
+        grow: function ()
+        {
+            var newPart = this.body.create(this.tail.x, this.tail.y, 'body');
+
+            newPart.setOrigin(0);
+        },
+
+        collideWithFood: function (food)
+        {
+            if (this.head.x === food.x && this.head.y === food.y)
+            {
+                this.grow();
+
+                food.eat();
+
+                //  For every 5 items of food eaten we'll increase the snake speed a little
+                if (this.speed > 20 && food.total % 5 === 0)
+                {
+                    this.speed -= 5;
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        },
+
+        updateGrid: function (grid)
+        {
+            //  Remove all body pieces from valid positions list
+            this.body.children.each(function (segment) {
+
+                var bx = segment.x / 16;
+                var by = segment.y / 16;
+
+                grid[by][bx] = false;
+
+            });
+
+            return grid;
+        }
+
+    });
+
+    food = new Food(this, 3, 4);
+
+    snake = new Snake(this, 8, 8);
+
+    //  Create our keyboard controls
+    cursors = this.input.keyboard.createCursorKeys();
+}
+
+update (time, delta)
+{
+    if (!snake.alive)
+    {
+        return;
     }
-  }
 
-  return wallAdj;
+    /**
+    * Check which key is pressed, and then change the direction the snake
+    * is heading based on that. The checks ensure you don't double-back
+    * on yourself, for example if you're moving to the right and you press
+    * the LEFT cursor, it ignores it, because the only valid directions you
+    * can move in at that time is up and down.
+    */
+    if (cursors.left.isDown)
+    {
+        snake.faceLeft();
+    }
+    else if (cursors.right.isDown)
+    {
+        snake.faceRight();
+    }
+    else if (cursors.up.isDown)
+    {
+        snake.faceUp();
+    }
+    else if (cursors.down.isDown)
+    {
+        snake.faceDown();
+    }
+
+    if (snake.update(time))
+    {
+        //  If the snake updated, we need to check for collision against food
+
+        if (snake.collideWithFood(food))
+        {
+            repositionFood();
+        }
+    }
+}
 }
 
-function isWall(x, y, tiles){
+/**
+* We can place the food anywhere in our 40x30 grid
+* *except* on-top of the snake, so we need
+* to filter those out of the possible food locations.
+* If there aren't any locations left, they've won!
+*
+* @method repositionFood
+* @return {boolean} true if the food was placed, otherwise false
+*/
+function repositionFood ()
+{
+    //  First create an array that assumes all positions
+    //  are valid for the new piece of food
 
-  if (checkBounds(x,y)){
-    return true;
-  }
+    //  A Grid we'll use to reposition the food each time it's eaten
+    var testGrid = [];
 
-  if (tiles[y][x] == 1){
-    return true;
-  }
+    for (var y = 0; y < 30; y++)
+    {
+        testGrid[y] = [];
 
-  if (tiles[y][x] == 0){
-    return false;
-  }
-  return false;
-}
+        for (var x = 0; x < 40; x++)
+        {
+            testGrid[y][x] = true;
+        }
+    }
 
-function checkBounds(x, y){
+    snake.updateGrid(testGrid);
 
-  var sizeX = MAPWIDTH / TILEWIDTH;
-  var sizeY = MAPHEIGHT / TILEHEIGHT;
+    //  Purge out false positions
+    var validLocations = [];
 
-  if( x < 0 || y < 0 ){
-    return true;
-  }
-  else if( x > sizeX-1 || y > sizeY-1 ){
-    return true;
-  }
-  return false;
+    for (var y = 0; y < 30; y++)
+    {
+        for (var x = 0; x < 40; x++)
+        {
+            if (testGrid[y][x] === true)
+            {
+                //  Is this position valid for food? If so, add it here ...
+                validLocations.push({ x: x, y: y });
+            }
+        }
+    }
+
+    if (validLocations.length > 0)
+    {
+        //  Use the RNG to pick a random food position
+        var pos = Phaser.Math.RND.pick(validLocations);
+
+        //  And place it
+        food.setPosition(pos.x * 16, pos.y * 16);
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
