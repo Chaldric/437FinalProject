@@ -14,7 +14,7 @@ var TILE_MAPPING = {
 var controls;
 var map, gMap;
 var gLayer, wLayer;
-var player, seg;
+var player, seg, testp;
 var cursors;
 var groundLayer, goldLayer;
 var score = 0;
@@ -51,6 +51,13 @@ class Scene3 extends Phaser.Scene {
 
     this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
     this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
+
+    new Phaser.Class({
+
+        initialize:
+
+        function Snake (scene, x, y){}
+      });
 
     player = this.physics.add.sprite(400,300,'coin').setDepth(2).setScale(2);
     player.setCollideWorldBounds(true);
