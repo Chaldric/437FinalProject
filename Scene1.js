@@ -126,13 +126,13 @@ class Scene1 extends Phaser.Scene {
        fill: '#000000'
     });
     text2.setScrollFactor(0);
-    /*
+
     text3 = this.add.text(20, 60, '0', {
        fontSize: '20px',
        fill: '#000000'
     });
     text3.setScrollFactor(0);
-
+    /*
     text4 = this.add.text(20, 80, '0', {
        fontSize: '20px',
        fill: '#000000'
@@ -177,7 +177,8 @@ class Scene1 extends Phaser.Scene {
 
 
     text1.setText("Player Score: " + pSnake.score);
-    text2.setText("Enemy Snakes: " + eSnakes.length);
+    text2.setText("Player Length: " + pSnake.body.getLength());
+    text3.setText("Enemy Snakes: " + eSnakes.length);
     //text1.setText("pSnake X:" + pSnake.head.x + " + Width: " + (pSnake.head.x + (pSnake.head.width * pSnake.head.scaleX - 1)));
     //text2.setText("pSnake Y:" + pSnake.head.y + " + Width: " + (pSnake.head.y + (pSnake.head.height * pSnake.head.scaleY - 1)));
     //text3.setText("Food X:" + food.x);
@@ -200,7 +201,7 @@ class Scene1 extends Phaser.Scene {
     }
     for (var s = 0; s < eSnakes.length; s++){
       if(!(eSnakes[s].heading == STOP))
-        eSnakes[s].chooseDir(time);
+        eSnakes[s].chooseDir(time, food);
       if (eSnakes[s].update(time)){
         if (eSnakes[s].collideWithFood(food)){
           repositionFood();

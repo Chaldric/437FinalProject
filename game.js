@@ -13,10 +13,10 @@ var config = {
   scene: [ Scene1, Scene2 ]
 };
 
-//var MAPWIDTH = 1600
-//var MAPHEIGHT = 1216
-var MAPWIDTH = 800
-var MAPHEIGHT = 608
+var MAPWIDTH = 1600
+var MAPHEIGHT = 1216
+//var MAPWIDTH = 800
+//var MAPHEIGHT = 608
 var TILEWIDTH = 16
 var TILEHEIGHT = 16
 var SIZEX = MAPWIDTH / TILEWIDTH;
@@ -147,11 +147,15 @@ var Snake = new Phaser.Class({
     } else if (this.heading == DOWN){
       this.headPosition.y = this.headPosition.y + 1;
     }
+
     if(!(this.heading == STOP)){
       this.direction = this.heading;
-
       Phaser.Actions.ShiftPosition(this.body.getChildren(), this.headPosition.x * 16, this.headPosition.y * 16, 1, this.tail);
 
+      return this.checkBodyCollision(time);
+    }
+  },
+  checkBodyCollision: function(time){
       var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
       if (hitBody){
@@ -168,7 +172,7 @@ var Snake = new Phaser.Class({
         this.moveTime = time + this.speed;
         return true;
       }
-    }
+
   },
 
   split: function(hit){
@@ -229,7 +233,12 @@ class EnemySnake extends Snake{
     super(scene, x, y, headImage, tailImage);
   }
 
-  chooseDir(time){
+  chooseDir(time, food){
+    if(this.checkFoodInRange(food)){
+      //console.log("True");
+    } else {
+      //console.log("False");
+    }
     if (time >= this.moveTime){
       var cX1 = food.x - this.head.x;
       var cY1 = food.y - this.head.y;
@@ -268,6 +277,32 @@ class EnemySnake extends Snake{
             this.faceLeft();
         }
       }
+    }
+  }
+
+  checkBodyCollision(time){
+      var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
+
+      /*if (hitBody){
+        if(this.body.getLength() <= 10){
+          console.log('dead');
+          this.alive = false;
+          return false;
+        }
+      } else {*/
+        this.moveTime = time + this.speed;
+        return true;
+      //}
+
+  }
+
+  checkFoodInRange(food){
+    if(Phaser.Math.Distance.Between(this.head.x, this.head.y, food.x, food.y) < (MAPWIDTH/3) ){
+      //console.log("Greater Than 1/3 MapWidth");
+      return true;
+    } else {
+      //console.log("Greater than 1/3 MapWidth");
+      return false;
     }
   }
 }
