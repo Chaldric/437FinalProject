@@ -156,7 +156,8 @@ class Scene1 extends Phaser.Scene {
   update (time, delta){
     score = pSnake.score;
     if (!pSnake.alive){
-      return;
+      this.scene.start("MenuScene");
+      //return;
     }
     for (var s = 0; s < eSnakes.length; s++){
       if (!eSnakes[s].alive){
