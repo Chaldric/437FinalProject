@@ -1,34 +1,3 @@
-///var MAPWIDTH = 1600
-///var MAPHEIGHT = 1216
-var MAPWIDTH = 800
-var MAPHEIGHT = 608
-var TILEWIDTH = 16
-var TILEHEIGHT = 16
-var SIZEX = MAPWIDTH / TILEWIDTH;
-var SIZEY = MAPHEIGHT / TILEHEIGHT;
-
-
-var TILE_MAPPING = {
-  FLOOR: 452,
-  WALL: 341,
-  GOLD: 393
-}
-
-var STOP = 0;
-var UP = 1;
-var DOWN = 2;
-var LEFT = 3;
-var RIGHT = 4;
-
-var snake, food;
-
-var controls;
-var map, gMap;
-var cursors;
-var groundLayer, goldLayer;
-var text1, text2, text3, text4;
-
-
 class Scene1 extends Phaser.Scene {
   constructor() {
     super({key:"Scene1"});
@@ -85,8 +54,9 @@ class Scene1 extends Phaser.Scene {
         this.body = scene.physics.add.group();
 
         this.head = this.body.create(x * 16, y * 16, 'ship');
+        this.head.name = "Head";
         this.head.setOrigin(0);
-        this.head.setScale(1);
+        this.head.setScale(0.5);
         this.head.setCollideWorldBounds(true);
 
         this.alive = true;
@@ -149,9 +119,17 @@ class Scene1 extends Phaser.Scene {
           var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
           if (hitBody){
-            console.log('dead');
-            this.alive = false;
-            return false;
+            if(this.body.getLength() < 5){
+              console.log('dead');
+              console.log(hitBody);
+              this.alive = false;
+              return false;
+            } else {
+              this.heading = STOP;
+              this.split(hitBody);
+              this.moveTime = time + this.speed;
+              return true;
+            }
           } else {
             this.moveTime = time + this.speed;
             return true;
@@ -159,13 +137,31 @@ class Scene1 extends Phaser.Scene {
         }
       },
 
-      grow: function (){
+      split: function(hit){
+        let tempArr = this.body.getChildren();
+        console.log(tempArr);
+        console.log("Segment Hit: " + hit.name);
+        console.log("Segment " + tempArr[hit.name].name);
+        var ni;
+        for(ni = 0; ni < (tempArr.length - hit.name); ni++){
+          console.log("Segments Removed: " + tempArr[hit.name+ni].name);
+          this.body.remove(tempArr[hit.name + ni]);
+        }
+        //console.log(tempArr);
+        //tempArr = this.body.getChildren();
+        //for(var j = 1; j < tempArr.length; j++){
+          //tempArr[j].name = j - 1;
+        //}
+      },
+
+      grow: function(){
         var newPart = this.body.create(this.tail.x, this.tail.y, 'ship');
+        newPart.name = this.body.getLength() - 1;
         newPart.setOrigin(0);
         newPart.setScale(0.5);
       },
 
-      collideWithFood: function (food){
+      collideWithFood: function(food){
         var maxX = this.head.x + this.head.width * this.head.scaleX - 1;
         var maxY = this.head.y +  this.head.height * this.head.scaleY - 1;
         var rangeX = ((food.x >= this.head.x) && (food.x < maxX));
@@ -185,7 +181,7 @@ class Scene1 extends Phaser.Scene {
         }
       },
 
-      updateGrid: function (grid){
+      updateGrid: function(grid){
         //  Remove all body pieces from valid positions list
         this.body.children.each(function (segment){
           var bx = segment.x / 16;
@@ -197,25 +193,91 @@ class Scene1 extends Phaser.Scene {
       }
     });
 
+    class EnemySnake extends Snake{
+      constructor(scene,x,y) {
+        super(scene,x,y);
+      }
+      testFunc(test){
+        console.log(test);
+      }
+
+      chooseDir(time){
+        if (time >= this.moveTime){
+          var cX1 = food.x - this.head.x;
+          var cY1 = food.y - this.head.y;
+          //console.log("Food X: "+food.x+" Food Y: "+food.y);
+          //console.log("Diff X: "+cX1+" Diff Y: "+cY1+" Heading: "+this.heading);
+          if (Math.abs(cX1) > Math.abs(cY1)){
+            if ((cX1 > 0) && !(this.heading == LEFT)){
+              this.faceRight();
+            } else if ((cX1 > 0) && (this.heading == LEFT)) {
+              if(cY1 > 0)
+                this.faceDown();
+              else
+                this.faceUp();
+            }
+            if ((cX1 < 0) && !(this.heading == RIGHT)){
+              this.faceLeft();
+            } else if ((cX1 < 0) && (this.heading == RIGHT)) {
+              if(cY1 > 0)
+                this.faceDown();
+              else
+                this.faceUp();
+            }
+          } else if (Math.abs(cX1) < Math.abs(cY1)){
+            if ((cY1 > 0) && !(this.heading == UP)){
+              this.faceDown();
+            } else if ((cY1 > 0) && (this.heading == UP)) {
+              if(cX1 > 0)
+                this.faceRight();
+              else
+                this.faceLeft();
+            }
+            if ((cY1 < 0) && !(this.heading == DOWN)){
+              this.faceUp();
+            } else if ((cY1 < 0) && (this.heading == DOWN)) {
+              if(cX1 > 0)
+                this.faceRight();
+              else
+                this.faceLeft();
+            }
+          }
+        }
+      }
+    }
+
     food = new Food(this, 3, 4);
 
-    snake = new Snake(this, 10, 10);
+    pSnake = new Snake(this, 10, 10);
+    eSnakes = [];
+    eSnake = new EnemySnake(this, 10, 15);
+    eSnake.heading = STOP;
+    eSnake.direction = RIGHT;
+    eSnakes.push(eSnake)
 
     repositionFood();
 
-    //this.physics.add.collider(groundLayer, snake.body);
+    //this.physics.add.collider(groundLayer, pSnake.body);
 
     var cam = this.cameras.main;
     cam.setBounds(0, 0, MAPWIDTH, MAPHEIGHT);
-    cam.startFollow(snake.head, true);
+    cam.startFollow(pSnake.head, true);
 
     cursors = this.input.keyboard.createCursorKeys();
 
     this.input.keyboard.on('keyup_Q', function(event) {
-        if(snake.heading == STOP){
-            snake.heading = snake.direction;
+        if(pSnake.heading == STOP){
+            pSnake.heading = pSnake.direction;
         } else{
-            snake.heading = STOP;
+            pSnake.heading = STOP;
+        }
+        console.log(pSnake.body.getChildren());
+        for(var s = 0; s < eSnakes.length; s++){
+          if(eSnakes[s].heading == STOP){
+              //eSnakes[s].heading = eSnakes[s].direction;
+          } else{
+              //eSnakes[s].heading = STOP;
+          }
         }
     },this);
 
@@ -224,15 +286,21 @@ class Scene1 extends Phaser.Scene {
     },this);
 
     this.input.keyboard.on('keyup_E', function(event) {
-        snake.grow();
+        pSnake.grow();
     },this);
 
     this.input.keyboard.on('keyup_W', function(event) {
-        snake.speed = snake.speed * 0.9;
+        pSnake.speed = pSnake.speed * 0.9;
     },this);
 
     this.input.keyboard.on('keyup_S', function(event) {
-        snake.speed = snake.speed * 1.1;
+        pSnake.speed = pSnake.speed * 1.1;
+    },this);
+
+    this.input.keyboard.on('keyup_D', function(event) {
+        for(var s = 0; s < eSnakes.length; s++){
+          eSnake.alive = false;
+        }
     },this);
 
 
@@ -262,11 +330,17 @@ class Scene1 extends Phaser.Scene {
 }
 
   update (time, delta){
-    if (!snake.alive){
+    if (!pSnake.alive){
       return;
     }
-    text1.setText("Snake X:" + snake.head.x + " + Width: " + (snake.head.x + (snake.head.width * snake.head.scaleX - 1)));
-    text2.setText("Snake Y:" + snake.head.y + " + Width: " + (snake.head.y + (snake.head.height * snake.head.scaleY - 1)));
+    for (var s = 0; s < eSnakes.length; s++){
+      if (!eSnakes[s].alive){
+        eSnakes[s].body.clear(true,true);
+        eSnakes.splice(s,1);
+      }
+    }
+    text1.setText("pSnake X:" + pSnake.head.x + " + Width: " + (pSnake.head.x + (pSnake.head.width * pSnake.head.scaleX - 1)));
+    text2.setText("pSnake Y:" + pSnake.head.y + " + Width: " + (pSnake.head.y + (pSnake.head.height * pSnake.head.scaleY - 1)));
     text3.setText("Food X:" + food.x);
     text4.setText("Food Y:" + food.y);
 
@@ -278,93 +352,98 @@ class Scene1 extends Phaser.Scene {
     * can move in at that time is up and down.
     */
     if (cursors.left.isDown){
-        snake.faceLeft();
+        pSnake.faceLeft();
     } else if (cursors.right.isDown){
-        snake.faceRight();
+        pSnake.faceRight();
     } else if (cursors.up.isDown){
-        snake.faceUp();
+        pSnake.faceUp();
     } else if (cursors.down.isDown){
-        snake.faceDown();
+        pSnake.faceDown();
     }
 
-    if (snake.update(time))
-    {
-        //  If the snake updated, we need to check for collision against food
-
-        if (snake.collideWithFood(food))
-        {
-            repositionFood();
+    if (pSnake.update(time)){
+      if (pSnake.collideWithFood(food)){
+        repositionFood();
+      }
+    }
+    for (var s = 0; s < eSnakes.length; s++){
+      if(!(eSnakes[s].heading == STOP))
+        eSnakes[s].chooseDir(time);
+      if (eSnakes[s].update(time)){
+        if (eSnakes[s].collideWithFood(food)){
+          repositionFood();
         }
+      }
     }
   }
 }
 
 function stopSnake(){
-  snake.heading = STOP;
-  console.log('Stopped Snake')
+  pSnake.heading = STOP;
+  console.log('Stopped pSnake')
 }
-/**
-* We can place the food anywhere in our 40x30 grid
-* *except* on-top of the snake, so we need
-* to filter those out of the possible food locations.
-* If there aren't any locations left, they've won!
-*
-* @method repositionFood
-* @return {boolean} true if the food was placed, otherwise false
+/*
+function chooseDir(){
+  var cX1 = food.x - eSnake.head.x;
+  var cY1 = food.y - eSnake.head.y;
+  console.log("Food X: "+food.x+" Food Y: "+food.y);
+  console.log("Diff X: "+cX1+" Diff Y: "+cY1+" Heading: "+eSnake.heading);
+  if (Math.abs(cX1) > Math.abs(cY1)){
+    if ((cX1 > 0) && !(eSnake.heading == LEFT)){
+      eSnake.faceRight();
+    } else if ((cX1 > 0) && (eSnake.heading == LEFT)) {
+      eSnake.faceUp();
+    }
+    if ((cX1 < 0) && !(eSnake.heading == RIGHT)){
+      eSnake.faceLeft();
+    } else if ((cX1 < 0) && (eSnake.heading == RIGHT)) {
+      eSnake.faceDown();
+    }
+  } else if (Math.abs(cX1) < Math.abs(cY1)){
+    if ((cY1 > 0) && !(eSnake.heading == UP)){
+      eSnake.faceDown();
+    } else if ((cY1 > 0) && (eSnake.heading == UP)) {
+      eSnake.faceLeft();
+    }
+    if ((cY1 < 0) && !(eSnake.heading == DOWN)){
+      eSnake.faceUp();
+    } else if ((cY1 < 0) && (eSnake.heading == DOWN)) {
+      eSnake.faceRight();
+    }
+  }
+}
 */
-function repositionFood()
-{
-    //  First create an array that assumes all positions
-    //  are valid for the new piece of food
+function repositionFood(){
+  var testGrid = [];
 
-    //  A Grid we'll use to reposition the food each time it's eaten
-
-    var testGrid = [];
-
-    for (var y = 0; y < SIZEY; y++)
-    {
-        testGrid[y] = [];
-
-        for (var x = 0; x < SIZEX; x++)
-        {
-          if (gMap[y][x] == TILE_MAPPING.WALL)
-            testGrid[y][x] = false;
-          else
-            testGrid[y][x] = true;
-        }
+  for (var y = 0; y < SIZEY; y++){
+    testGrid[y] = [];
+    for (var x = 0; x < SIZEX; x++){
+      if (gMap[y][x] == TILE_MAPPING.WALL)
+        testGrid[y][x] = false;
+      else
+        testGrid[y][x] = true;
     }
+  }
 
-    snake.updateGrid(testGrid);
+  pSnake.updateGrid(testGrid);
+  var validLocations = [];
 
-    //  Purge out false positions
-    var validLocations = [];
-
-    for (var y = 0; y < SIZEY; y++)
-    {
-        for (var x = 0; x < SIZEX; x++)
-        {
-            if (testGrid[y][x] === true)
-            {
-                //  Is this position valid for food? If so, add it here ...
-                validLocations.push({ x: x, y: y });
-            }
-        }
+  for (var y = 0; y < SIZEY; y++){
+    for (var x = 0; x < SIZEX; x++){
+      if (testGrid[y][x] === true){
+        validLocations.push({ x: x, y: y });
+      }
     }
+  }
 
-    if (validLocations.length > 0)
-    {
-        //  Use the RNG to pick a random food position
-        var pos = Phaser.Math.RND.pick(validLocations);
-
-        //  And place it
-        food.setPosition(pos.x * 16, pos.y * 16);
-
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+  if (validLocations.length > 0){
+    var pos = Phaser.Math.RND.pick(validLocations);
+    food.setPosition(pos.x * 16, pos.y * 16);
+    return true;
+  } else{
+    return false;
+  }
 }
 
 

@@ -1,26 +1,3 @@
-//var MAPWIDTH = 1600
-//var MAPHEIGHT = 1216
-//var MAPWIDTH = 800
-//var MAPHEIGHT = 608
-var TILEWIDTH = 16
-var TILEHEIGHT = 16
-
-var TILE_MAPPING = {
-  FLOOR: 452,
-  WALL: 341,
-  GOLD: 393
-}
-
-var controls;
-var map, gMap;
-var gLayer, wLayer;
-var player, seg;
-var cursors;
-var groundLayer, goldLayer;
-var score = 0;
-var text, playerVelX;
-
-
 class Scene3 extends Phaser.Scene {
   constructor() {
     super({key:"Scene3"});
