@@ -50,6 +50,7 @@ class Scene1 extends Phaser.Scene {
     var Snake = new Phaser.Class({
       initialize:
       function Snake (scene, x, y, spriteImage){
+        this.spriteImage = spriteImage;
         this.headPosition = new Phaser.Geom.Point(x, y);
 
         this.body = scene.physics.add.group();
@@ -156,7 +157,7 @@ class Scene1 extends Phaser.Scene {
       },
 
       grow: function(){
-        var newPart = this.body.create(this.tail.x, this.tail.y, spriteImage);
+        var newPart = this.body.create(this.tail.x, this.tail.y, this.spriteImage);
         newPart.name = this.body.getLength() - 1;
         newPart.setOrigin(0);
         newPart.setScale(0.5);
