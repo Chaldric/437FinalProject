@@ -4,10 +4,11 @@ class Scene1 extends Phaser.Scene {
   }
 
   preload(){
-    this.load.image('ship', 'assets/pShip.png');
+    this.load.image('psnake', 'assets/pShip.png');
+    this.load.image('esnake', 'assets/pShip.png');
+    this.load.image('food', 'assets/Coins/coin_01.png');
     this.load.spritesheet('coin', 'assets/Coins/FullCoins.png', { frameWidth: 15, frameHeight: 16, spacing: 1 });
     this.load.image('tiles', 'assets/roguelikeDungeon_transparent.png');
-    //this.load.image('tiles', 'assets/marioTilemap2B.png');
   }
 
   create(){
@@ -31,7 +32,7 @@ class Scene1 extends Phaser.Scene {
       function Food(scene, x, y){
         Phaser.GameObjects.Image.call(this, scene)
 
-        this.setTexture('ship');
+        this.setTexture('food');
         this.setPosition(x * 16, y * 16);
         this.setOrigin(0);
         this.setScale(0.5);
@@ -48,12 +49,12 @@ class Scene1 extends Phaser.Scene {
 
     var Snake = new Phaser.Class({
       initialize:
-      function Snake (scene, x, y){
+      function Snake (scene, x, y, spriteImage){
         this.headPosition = new Phaser.Geom.Point(x, y);
 
         this.body = scene.physics.add.group();
 
-        this.head = this.body.create(x * 16, y * 16, 'ship');
+        this.head = this.body.create(x * 16, y * 16, spriteImage);
         this.head.name = "Head";
         this.head.setOrigin(0);
         this.head.setScale(0.5);
@@ -125,8 +126,8 @@ class Scene1 extends Phaser.Scene {
               this.alive = false;
               return false;
             } else {
-              this.heading = STOP;
-              this.split(hitBody);
+              //this.heading = STOP;
+              //this.split(hitBody);
               this.moveTime = time + this.speed;
               return true;
             }
@@ -155,7 +156,7 @@ class Scene1 extends Phaser.Scene {
       },
 
       grow: function(){
-        var newPart = this.body.create(this.tail.x, this.tail.y, 'ship');
+        var newPart = this.body.create(this.tail.x, this.tail.y, spriteImage);
         newPart.name = this.body.getLength() - 1;
         newPart.setOrigin(0);
         newPart.setScale(0.5);
@@ -194,8 +195,8 @@ class Scene1 extends Phaser.Scene {
     });
 
     class EnemySnake extends Snake{
-      constructor(scene,x,y) {
-        super(scene,x,y);
+      constructor(scene,x,y,spriteImage) {
+        super(scene,x,y,spriteImage);
       }
       testFunc(test){
         console.log(test);
@@ -248,9 +249,9 @@ class Scene1 extends Phaser.Scene {
 
     food = new Food(this, 3, 4);
 
-    pSnake = new Snake(this, 10, 10);
+    pSnake = new Snake(this, 10, 10, 'psnake');
     eSnakes = [];
-    eSnake = new EnemySnake(this, 10, 15);
+    eSnake = new EnemySnake(this, 10, 15, 'esnake');
     eSnake.heading = STOP;
     eSnake.direction = RIGHT;
     eSnakes.push(eSnake)
@@ -274,9 +275,9 @@ class Scene1 extends Phaser.Scene {
         console.log(pSnake.body.getChildren());
         for(var s = 0; s < eSnakes.length; s++){
           if(eSnakes[s].heading == STOP){
-              //eSnakes[s].heading = eSnakes[s].direction;
+              eSnakes[s].heading = eSnakes[s].direction;
           } else{
-              //eSnakes[s].heading = STOP;
+              eSnakes[s].heading = STOP;
           }
         }
     },this);
