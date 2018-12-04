@@ -24,7 +24,7 @@ class Scene3 extends Phaser.Scene {
     //groundLayer.fill(0);
     //groundLayer.putTileAt(1,0,0)
     groundLayer.setCollision(TILE_MAPPING.WALL);
-    //goldLayer.putTileAt(TILE_MAPPING.GOLD,20,20)
+    goldLayer.putTileAt(TILE_MAPPING.GOLD,20,20)
 
     this.physics.world.bounds.width = MAPWIDTH//groundLayer.width;
     this.physics.world.bounds.height = MAPHEIGHT//groundLayer.height;
@@ -32,18 +32,9 @@ class Scene3 extends Phaser.Scene {
     player = this.physics.add.sprite(400,300,'coin').setDepth(2).setScale(2);
     player.setCollideWorldBounds(true);
 
-    player.setVelocityX(3);
-
-    console.log(player);
-
-    seg = new Array(20);
-    for (i = 0; i < 5; i++){
-      seg[i] = this.physics.add.sprite(player.x + i*10,player.y,'coin').setDepth(2);//this.physics.add.image(player.x + 10,player.y,'ship');
-    }
-
     this.physics.add.collider(groundLayer, player);
 
-    //spawnGold(20,20);
+    spawnGold(20,20);
 
     goldLayer.setTileIndexCallback(TILE_MAPPING.GOLD, collectCoin, this);
 
@@ -125,11 +116,9 @@ class Scene3 extends Phaser.Scene {
   }
 
   update(time, delta){
-    updateSeg();
     checkKeys(this);
     //updateSeg();
     //controls.update(delta);
-    playerVelX.setText(player.body);
     //console.log(player);
   }
 
@@ -161,16 +150,18 @@ function checkKeys(scene){
 }
 
 function collectCoin(sprite, tile) {
+  console.log("Test");
   goldLayer.removeTileAt(tile.x, tile.y);
   score++;
   text.setText(score);
   spawnGold(25,25);
+  console.log("Test2");
   return false;
 }
 
 function spawnGold(posX,posY){
-  for (x = 1; x < sizeX-1; x++){
-    for (y = 1; y < sizeY-1; y++){
+  for (x = 1; x < SIZEX-1; x++){
+    for (y = 1; y < SIZEY-1; y++){
       if (Phaser.Math.RND.integerInRange(0,100) < 40)
         gMap[y][x] = TILE_MAPPING.WALL;
       else
@@ -180,34 +171,13 @@ function spawnGold(posX,posY){
   goldLayer.putTileAt(TILE_MAPPING.GOLD,Phaser.Math.RND.integerInRange(0,MAPWIDTH),Phaser.Math.RND.integerInRange(0,MAPHEIGHT))
 }
 
-function updateSeg(){
-  seg[0].x = player.x + 10;
-  seg[0].y = player.y;
-  /*
-  seg[1].x = seg[0].x + 10;
-  seg[1].y = seg[0].y;
-  seg[2].x = seg[1].x + 10;
-  seg[2].y = seg[1].y;
-  seg[3].x = seg[2].x + 10;
-  seg[3].y = seg[2].y;
-  seg[4].x = seg[3].x + 10;
-  seg[4].y = seg[3].y;*/
-  for(i = 1; i < 5; i++){
-    seg[i].x = seg[i-1].x + 10;
-    seg[i].y = seg[i-1].y;
-  }
-
-}
-
 function createMap(){
-  var sizeX = MAPWIDTH / TILEWIDTH;
-  var sizeY = MAPHEIGHT / TILEHEIGHT;
-  gMap = new Array(sizeX);
-  for (i = 0; i < sizeX; i++)
-    gMap[i] = new Array(sizeY);
+  gMap = new Array(SIZEX);
+  for (i = 0; i < SIZEX; i++)
+    gMap[i] = new Array(SIZEY);
 
-  for (x = 1; x < sizeX-1; x++){
-    for (y = 1; y < sizeY-1; y++){
+  for (x = 1; x < SIZEX-1; x++){
+    for (y = 1; y < SIZEY-1; y++){
       if (Phaser.Math.RND.integerInRange(0,100) < 40)
         gMap[y][x] = TILE_MAPPING.WALL;
       else
@@ -215,25 +185,25 @@ function createMap(){
     }
   }
 
-  for (x = 0; x < sizeX; x++)
-    gMap[0][x] = gMap[sizeY-1][x] = TILE_MAPPING.WALL;
+  for (x = 0; x < SIZEX; x++)
+    gMap[0][x] = gMap[SIZEY-1][x] = TILE_MAPPING.WALL;
 
-  for (y = 0; y < sizeY; y++)
-    gMap[y][0] = gMap[y][sizeX-1] = TILE_MAPPING.WALL;
+  for (y = 0; y < SIZEY; y++)
+    gMap[y][0] = gMap[y][SIZEX-1] = TILE_MAPPING.WALL;
 
   for (g = 0; g < 6; g++)
     generateMap(gMap);
 /*
-  gLayer = new Array(sizeX);
-  for (i = 0; i < sizeX; i++)
-    gLayer[i] = new Array(sizeY);
+  gLayer = new Array(SIZEX);
+  for (i = 0; i < SIZEX; i++)
+    gLayer[i] = new Array(SIZEY);
 
-  wLayer = new Array(sizeX);
-  for (i = 0; i < sizeX; i++)
-    wLayer[i] = new Array(sizeY);
+  wLayer = new Array(SIZEX);
+  for (i = 0; i < SIZEX; i++)
+    wLayer[i] = new Array(SIZEY);
 
-  for (x = 0; x < sizeX; x++){
-    for (y = 0; y < sizeY; y++){
+  for (x = 0; x < SIZEX; x++){
+    for (y = 0; y < SIZEY; y++){
       if (gMap[y][x] == 1){
         gLayer[y][x] = 1;
         wLayer[y][x] = null;
@@ -252,12 +222,8 @@ function createMap(){
 }
 
 function generateMap(tiles){
-
-  var sizeX = MAPWIDTH / TILEWIDTH;
-  var sizeY = MAPHEIGHT / TILEHEIGHT;
-
-  for (x = 1; x < sizeX-1; x++){
-    for (y = 1; y < sizeY-1; y++){
+  for (x = 1; x < SIZEX-1; x++){
+    for (y = 1; y < SIZEY-1; y++){
       tiles[y][x] = placeWall(x,y,tiles);
     }
   }
@@ -321,15 +287,13 @@ function isWall(x, y, tiles){
 }
 
 function checkBounds(x, y){
-
-  var sizeX = MAPWIDTH / TILEWIDTH;
-  var sizeY = MAPHEIGHT / TILEHEIGHT;
-
   if( x < 0 || y < 0 ){
     return true;
   }
-  else if( x > sizeX-1 || y > sizeY-1 ){
+  else if( x > SIZEX-1 || y > SIZEY-1 ){
     return true;
   }
   return false;
 }
+
+*/
