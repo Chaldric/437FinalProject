@@ -14,6 +14,12 @@ class Scene1 extends Phaser.Scene {
   }
 
   create(){
+    /*
+    MAPWIDTH = 1600;
+    MAPHEIGHT = 1216;
+    SIZEX = MAPWIDTH / TILEWIDTH;
+    SIZEY = MAPHEIGHT / TILEHEIGHT;
+    */
     score = 0;
     makeEnemy = 99;
     createMap();

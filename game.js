@@ -2,7 +2,6 @@ var config = {
   type:Phaser.AUTO,
   width:800,
   height:608,
-  pixelArt: true,
   physics: {
     default:'arcade',
     arcade: {
@@ -10,15 +9,16 @@ var config = {
       debug: false
     }
   },
+  render:{
+    pixelArt: true
+  },
   scene: [ Scene1, Scene2 ]
 };
 
-var MAPWIDTH = 1600
-var MAPHEIGHT = 1216
-//var MAPWIDTH = 800
-//var MAPHEIGHT = 608
-var TILEWIDTH = 16
-var TILEHEIGHT = 16
+var MAPWIDTH = 800;
+var MAPHEIGHT = 608;
+var TILEWIDTH = 16;
+var TILEHEIGHT = 16;
 var SIZEX = MAPWIDTH / TILEWIDTH;
 var SIZEY = MAPHEIGHT / TILEHEIGHT;
 
@@ -33,7 +33,7 @@ var TILE_MAPPING = {
           {index: [58,59,88], weight: 0.08},
         {index: [304,392], weight: 0.02}],
   BLANK: null
-}
+};
 
 var STOP = 0;
 var UP = 1;
@@ -159,7 +159,7 @@ var Snake = new Phaser.Class({
       var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
       if (hitBody){
-        if(this.body.getLength() <= 10){
+        if(this.body.getLength() <= 6){
           console.log('dead');
           this.alive = false;
           return false;
@@ -186,7 +186,8 @@ var Snake = new Phaser.Class({
     }
     for (ni = (toBeDeleted.length - 1); ni >= 0; ni--){
       this.body.remove(toBeDeleted[ni],true,true);
-      this.score--;
+      if(this.score)
+        this.score--;
     }
   },
 
