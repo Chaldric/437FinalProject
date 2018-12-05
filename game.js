@@ -70,18 +70,19 @@ var Food = new Phaser.Class({
     this.total = 0;
 
     scene.children.add(this);
-  },
+  }, // end Food function
 
   eat: function(){
     this.total++;
-  }
-});
+  } // end eat
+}); // end Food Phaser Class
 
 var Snake = new Phaser.Class({
   initialize:
   function Snake (scene, x, y, headImage, tailImage){
     this.headImage = headImage;
     this.tailImage = tailImage;
+    this.curBody = 0;
 
     this.headPosition = new Phaser.Geom.Point(x, y);
 
@@ -105,37 +106,37 @@ var Snake = new Phaser.Class({
     this.direction = STOP;
 
     this.score = 0;
-  },
+  }, // end Snake function
 
   update: function(time){
     if (time >= this.moveTime){
       return this.move(time);
     }
-  },
+  }, // end update
 
   faceLeft: function(){
     if (!(this.direction == RIGHT)){
       this.heading = LEFT;
     }
-  },
+  }, // end faceLeft
 
   faceRight: function(){
     if (!(this.direction == LEFT)){
       this.heading = RIGHT;
     }
-  },
+  }, // end faceRight
 
   faceUp: function(){
     if (!(this.direction == DOWN)){
       this.heading = UP;
     }
-  },
+  }, // end faceUp
 
   faceDown: function(){
     if (!(this.direction == UP)){
       this.heading = DOWN;
     }
-  },
+  }, // end faceDown
 
   move: function(time){
     if (this.heading == LEFT){
@@ -154,7 +155,8 @@ var Snake = new Phaser.Class({
 
       return this.checkBodyCollision(time);
     }
-  },
+  }, // end move
+
   checkBodyCollision: function(time){
       var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
@@ -173,7 +175,7 @@ var Snake = new Phaser.Class({
         return true;
       }
 
-  },
+  }, // end checkBodyCollision
 
   split: function(hit){
     let tempArr = this.body.getChildren();
@@ -189,15 +191,17 @@ var Snake = new Phaser.Class({
       if(this.score)
         this.score--;
     }
-  },
+  }, // end split
 
   grow: function(){
-    var randBodyColor = Phaser.Math.RND.integerInRange(0,this.tailImage.length-1)
-    var newPart = this.body.create(this.tail.x, this.tail.y, this.tailImage[randBodyColor]);
+    var newPart = this.body.create(this.tail.x, this.tail.y, this.tailImage[this.curBody]);
+    this.curBody++;
+    if(this.curBody >= this.tailImage.length)
+      this.curBody = 0;
     newPart.name = this.body.getLength() - 1;
     newPart.setOrigin(0);
     newPart.setScale(0.5);
-  },
+  }, // end grow
 
   collideWithFood: function(food){
     var maxX = this.head.x + this.head.width * this.head.scaleX - 1;
@@ -216,7 +220,7 @@ var Snake = new Phaser.Class({
     } else {
       return false;
     }
-  },
+  }, // end collideWithFood
 
   updateGrid: function(grid){
     this.body.children.each(function (segment){
@@ -226,13 +230,13 @@ var Snake = new Phaser.Class({
       grid[by][bx] = false;
     });
     return grid;
-  }
-});
+  } // end updateGrid
+}); // end Snake Phaser Class
 
 class EnemySnake extends Snake{
   constructor(scene, x, y, headImage, tailImage) {
     super(scene, x, y, headImage, tailImage);
-  }
+  } // end constructor
 
   chooseDir(time, food){
     if(this.checkFoodInRange(food)){
@@ -260,7 +264,8 @@ class EnemySnake extends Snake{
           else
             this.faceUp();
         }
-      } else if (Math.abs(cX1) < Math.abs(cY1)){
+      } // end if abs cX1 < cY1
+      else if (Math.abs(cX1) < Math.abs(cY1)){
         if ((cY1 > 0) && !(this.heading == UP)){
           this.faceDown();
         } else if ((cY1 > 0) && (this.heading == UP)) {
@@ -277,26 +282,28 @@ class EnemySnake extends Snake{
           else
             this.faceLeft();
         }
-      }
-    }
-  }
+      } // end if abs cX1 < cY1
+    } // end if moveTime
+  } // end chooseDir
 
+  // EnemySnake checkBodyCollision removes the split function.
   checkBodyCollision(time){
       var hitBody = Phaser.Actions.GetFirst(this.body.getChildren(), { x: this.head.x, y: this.head.y }, 1);
 
-      /*if (hitBody){
+      if (hitBody){
         if(this.body.getLength() <= 10){
           console.log('dead');
           this.alive = false;
           return false;
         }
-      } else {*/
+      } else {
         this.moveTime = time + this.speed;
         return true;
-      //}
+      }
 
-  }
+  } // end checkBodyCollision
 
+  // Future pathfinding function.
   checkFoodInRange(food){
     if(Phaser.Math.Distance.Between(this.head.x, this.head.y, food.x, food.y) < (MAPWIDTH/3) ){
       //console.log("Greater Than 1/3 MapWidth");
@@ -305,7 +312,245 @@ class EnemySnake extends Snake{
       //console.log("Greater than 1/3 MapWidth");
       return false;
     }
+  } // end checkFoodInRange
+} // end EnemySnake Class
+
+/*
+* Creates a proceduraly generated 2D array of tile map data for the game map.
+* Following the methods discussed in the article "Cellular Automata Method for
+* Generating Random Cave-Like Levels", the function sets up a 2D array on a
+* global variable called gMap and returns the 2D array. It first starts off
+* by setting up the 2D array, then randomly fills the array with either a
+* wall or a blank spot for each index of the 2D array. A border of walls
+* is placed around the edges of the map. Then the array is run through several
+* iteration of comparing neighbors, making each index more like its neighbors.
+*/
+function createMap(){
+
+  gMap = new Array(SIZEX);
+  for (i = 0; i < SIZEX; i++)
+    gMap[i] = new Array(SIZEY);
+
+  for (x = 1; x < SIZEX-1; x++){
+    for (y = 1; y < SIZEY-1; y++){
+      if (Phaser.Math.RND.integerInRange(0,100) < 40)
+        gMap[y][x] = TILE_MAPPING.WALL;
+      else
+        gMap[y][x] = TILE_MAPPING.BLANK;
+    }
   }
-}
+
+  for (x = 0; x < SIZEX; x++)
+    gMap[0][x] = gMap[SIZEY-1][x] = TILE_MAPPING.WALL;
+
+  for (y = 0; y < SIZEY; y++)
+    gMap[y][0] = gMap[y][SIZEX-1] = TILE_MAPPING.WALL;
+
+  // Iterates the map 6 times. Could be changed to iterate more or less times.
+  for (g = 0; g < 6; g++)
+    generateMap(gMap);
+  return gMap;
+} // end createMap
+
+/*
+*
+*/
+function generateMap(tiles){
+
+  for (x = 1; x < SIZEX-1; x++){
+    for (y = 1; y < SIZEY-1; y++){
+      tiles[y][x] = placeWall(x,y,tiles);
+    }
+  }
+
+  return tiles;
+} // end generateMap
+
+function placeWall(row,column,tiles){
+  let adjWalls = getNumAdj(row,column,tiles);
+  if (tiles[column][row] == TILE_MAPPING.WALL){
+    if (adjWalls >= 4)
+      return TILE_MAPPING.WALL
+    else if (adjWalls < 2)
+      return TILE_MAPPING.BLANK
+  } else {
+    if (adjWalls >= 5)
+      return TILE_MAPPING.WALL;
+  }
+  return TILE_MAPPING.BLANK;
+} // end placeWall
+
+function getNumAdj(row,column,tiles){
+  //return 0;
+  let startX = row - 1;
+  let startY = column - 1;
+  let endX = row + 1;
+  let endY = column + 1;
+
+  let wallAdj = 0;
+  let x = 0
+  let y = 0
+
+  for (x = startX; x <= endX; x++){
+    for (y = startY; y <= endY; y++){
+      if (!(x == row && y == column)){
+        if (isWall(x,y,tiles)){
+          wallAdj++;
+        }
+      }
+    }
+  }
+
+  return wallAdj;
+} // end getNumAdj
+
+function isWall(x, y, tiles){
+
+  if (checkBounds(x,y)){
+    return true;
+  }
+  if (tiles[y][x] == TILE_MAPPING.WALL){
+    return true;
+  }
+  if (tiles[y][x] == TILE_MAPPING.BLANK){
+    return false;
+  }
+  return false;
+} // end isWall
+
+function checkBounds(x, y){
+
+  if( x < 0 || y < 0 ){
+    return true;
+  } else if( x > SIZEX-1 || y > SIZEY-1 ){
+    return true;
+  }
+  return false;
+} // end checkBounds
+
+
+/*
+* The game map is made up of three tilemap layers consisting of
+* Floor, Debris, and Wall layers. The Floor and Debris layers fill
+* the background of the game map while the wall layer creates the play
+* area that the game characters stay within. The Floor layer consists of
+* five different tiles that each have a seperate weighted chance of being used.
+* The Debris layer uses five different debris tiles with a 10% chance of being
+* placed onto the game map otherwise a black tile is placed. The Wall layer
+* is made up of wall tiles that create the boundaries for the game map.
+* The Wall layer can be collided with by the game characters.
+*/
+function setUpTileMap(scene){
+  map = scene.make.tilemap({ data: gMap, tileWidth: 16, tileHeight: 16, insertNull: true });
+  var worldTiles = map.addTilesetImage('tiles',null ,16,16,0,1,null,null);
+  var stuffTiles = map.addTilesetImage('tiles',null ,16,16,0,1,null,null);
+
+  floorLayer = map.createBlankDynamicLayer('Ground', worldTiles);
+  debrisLayer = map.createBlankDynamicLayer('Debris', worldTiles);
+  wallLayer = map.createBlankDynamicLayer('Walls', worldTiles);
+  goldLayer = map.createBlankDynamicLayer('Stuff', worldTiles);
+
+  floorLayer.fill(TILE_MAPPING.FLOOR);
+  floorLayer.weightedRandomize(0, 0, SIZEX, SIZEY, TILE_MAPPING.FLOOR);
+  debrisLayer.fill(TILE_MAPPING.BLANK);
+  debrisLayer.weightedRandomize(0, 0, SIZEX, SIZEY, TILE_MAPPING.DEBRIS);
+  wallLayer.putTilesAt(gMap, 0, 0);
+  wallLayer.setCollision(TILE_MAPPING.WALL);
+  goldLayer.putTileAt(TILE_MAPPING.GOLD,20,20)
+
+  scene.physics.world.bounds.width = MAPWIDTH
+  scene.physics.world.bounds.height = MAPHEIGHT
+} // end setUpTileMap
+
+/*
+* Moves the food to a random location on the map that is a valid position.
+* Valid positions consist of locations that are not a wall and do not currently
+* contain any part of the snake. Once the valid locations are determined, the
+* food is randomly placed on the map.
+*/
+function repositionFood(){
+  var testGrid = [];
+
+  for (var y = 0; y < SIZEY; y++){
+    testGrid[y] = [];
+    for (var x = 0; x < SIZEX; x++){
+      if (gMap[y][x] == TILE_MAPPING.WALL)
+        testGrid[y][x] = false;
+      else
+        testGrid[y][x] = true;
+    }
+  }
+
+  pSnake.updateGrid(testGrid);
+  var validLocations = [];
+
+  for (var y = 0; y < SIZEY; y++){
+    for (var x = 0; x < SIZEX; x++){
+      if (testGrid[y][x] == true){
+        validLocations.push({ x: x, y: y });
+      }
+    }
+  }
+
+  if (validLocations.length > 0){
+    var pos = Phaser.Math.RND.pick(validLocations);
+    food.setPosition(pos.x * 16, pos.y * 16);
+    return true;
+  } else{
+    return false;
+  }
+} // end repositionFood
+
+/*
+* Places the head of the snake at a random valid location. Currently valid
+* locations consist of places that are not walls.
+*/
+function spawnSnake(snake){
+  var validLocations = [];
+
+  for (var y = 0; y < SIZEY; y++){
+    for (var x = 0; x < SIZEX; x++){
+      if (gMap[y][x] == null){
+        validLocations.push({ x: x, y: y });
+      }
+    }
+  }
+
+  if (validLocations.length > 0){
+    var pos = Phaser.Math.RND.pick(validLocations);
+    snake.headPosition.x = pos.x;
+    snake.headPosition.y = pos.y;
+    snake.head.setPosition(pos.x * 16, pos.y * 16);
+    return true;
+  } else{
+    return false;
+  }
+} // end spawnSnake
+
+/*
+* A callback function that is called upon a game element colliding with a
+* wall tile. The game element is determined by its coordinates and is
+* then set to not being alive.
+*/
+function collideWithWall(sprite, tile, test){
+  var spriteCollided = 0;
+  for (i = 0; i < worldSprites.length; i++){
+    if (Phaser.Actions.GetFirst(worldSprites[i].body.getChildren(),{ x: sprite.x, y: sprite.y }, 0) != null){
+      spriteCollided = i;
+    }
+  }
+  worldSprites[spriteCollided].heading = STOP;
+  worldSprites[spriteCollided].alive = false;
+} // end collideWithWall
+
+function spawnGold(){
+  goldLayer.putTileAt(TILE_MAPPING.GOLD,Phaser.Math.RND.integerInRange(0,SIZEX),Phaser.Math.RND.integerInRange(0,SIZEY))
+} // end spawnGold
+
+function collectCoin(sprite, tile) {
+  goldLayer.removeTileAt(tile.x, tile.y);
+  spawnGold();
+  return false;
+} // end collectCoin
 
 var game = new Phaser.Game(config);

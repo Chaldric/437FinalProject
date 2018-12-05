@@ -1,17 +1,18 @@
 class MenuScene extends Phaser.Scene{
   constructor(){
     super({key:"MenuScene"});
-  }
+  } // end constructor
 
   preload(){
     this.load.image('tiles', 'assets/roguelikeDungeon_transparent.png');
-  }
+  } // end preload
 
   create(){
     MAPWIDTH = 800;
     MAPHEIGHT = 608;
     SIZEX = MAPWIDTH / TILEWIDTH;
     SIZEY = MAPHEIGHT / TILEHEIGHT;
+
     createMenuMap(this);
 
     var gameLogo = this.add.text(MAPWIDTH/2, MAPHEIGHT/3, 'Dungeon Slither', {
@@ -37,16 +38,20 @@ class MenuScene extends Phaser.Scene{
     playBigMap.setInteractive();
 
     playSmallMap.on("pointerover", () => {
+      //Future Additions
         console.log("Hover");
     });
     playBigMap.on("pointerover", () => {
+      //Future Additions
         console.log("Hover");
     });
 
     playSmallMap.on("pointerout", () => {
+      //Future Additions
         console.log("Not Hover");
     });
     playBigMap.on("pointerout", () => {
+      //Future Additions
         console.log("Not Hover");
     });
 
@@ -58,11 +63,17 @@ class MenuScene extends Phaser.Scene{
         console.log("Play");
         this.scene.start("BigMap");
     });
+  } // end create
+} // end MenuScene Scene
 
-  }
-
-}
-
+/*
+* Creates a background map for the menu screen.
+* The background will be made of the same tiles as the rest of the game.
+* The background is made up of three tilemap layers consisting of
+* Floor, Debris, and Wall layers made up of there respective tiles.
+* The Floor and Debris layers fill the whole screen while the wall only
+* creates a border around the outside parameter of the map space.
+*/
 function createMenuMap(scene){
   gMap = new Array(SIZEX);
   for (var i = 0; i < SIZEX; i++)
@@ -87,4 +98,4 @@ function createMenuMap(scene){
   debrisLayer.fill(TILE_MAPPING.BLANK);
   debrisLayer.weightedRandomize(0, 0, SIZEX, SIZEY, TILE_MAPPING.DEBRIS);
   wallLayer.putTilesAt(gMap, 0, 0);
-}
+} // end createMenuMap
