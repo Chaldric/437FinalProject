@@ -1,6 +1,6 @@
-class Scene1 extends Phaser.Scene {
+class SmallMap extends Phaser.Scene {
   constructor() {
-    super({key:"Scene1"});
+    super({key:"SmallMap"});
   }
 
   preload(){
@@ -14,12 +14,10 @@ class Scene1 extends Phaser.Scene {
   }
 
   create(){
-    /*
-    MAPWIDTH = 1600;
-    MAPHEIGHT = 1216;
+    MAPWIDTH = 800;
+    MAPHEIGHT = 608;
     SIZEX = MAPWIDTH / TILEWIDTH;
     SIZEY = MAPHEIGHT / TILEHEIGHT;
-    */
     score = 0;
     makeEnemy = 99;
     createMap();
@@ -107,6 +105,9 @@ class Scene1 extends Phaser.Scene {
         for(var s = 0; s < eSnakes.length; s++){
           eSnake.alive = false;
         }
+    },this);
+    this.input.keyboard.on('keyup_ESC', function(event) {
+        this.scene.start("MenuScene");
     },this);
 
     this.input.keyboard.on('keyup_F', function(event) {

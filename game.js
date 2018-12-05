@@ -12,7 +12,7 @@ var config = {
   render:{
     pixelArt: true
   },
-  scene: [ MenuScene, Scene1 ]
+  scene: [ MenuScene, SmallMap, BigMap ]
 };
 
 var MAPWIDTH = 800;

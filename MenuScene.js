@@ -8,55 +8,58 @@ class MenuScene extends Phaser.Scene{
   }
 
   create(){
+    MAPWIDTH = 800;
+    MAPHEIGHT = 608;
+    SIZEX = MAPWIDTH / TILEWIDTH;
+    SIZEY = MAPHEIGHT / TILEHEIGHT;
     createMenuMap(this);
 
-    var gameLogo = this.add.text(MAPWIDTH/2, MAPHEIGHT/3, 'Basic Snake', {
-       fontSize: '100px',
+    var gameLogo = this.add.text(MAPWIDTH/2, MAPHEIGHT/3, 'Dungeon Slither', {
+       fontSize: '90px',
        fill: '#FFFFFF'
     });
     gameLogo.setOrigin(0.5,0.5);
 
-    var playButton = this.add.text(MAPWIDTH/2, MAPHEIGHT*2/3, 'Play', {
-       fontSize: '60px',
+    var playSmallMap = this.add.text(MAPWIDTH/3, MAPHEIGHT*2/3, 'Small Map', {
+       fontSize: '40px',
        fill: '#FFFFFF'
     });
-    playButton.setOrigin(0.5,0.5);
-    playButton.setScrollFactor(0);
+    var playBigMap = this.add.text(MAPWIDTH*2/3, MAPHEIGHT*2/3, 'Big Map', {
+       fontSize: '40px',
+       fill: '#FFFFFF'
+    });
+    playSmallMap.setOrigin(0.5,0.5);
+    playSmallMap.setScrollFactor(0);
+    playBigMap.setOrigin(0.5,0.5);
+    playBigMap.setScrollFactor(0);
 
-    playButton.setInteractive();
+    playSmallMap.setInteractive();
+    playBigMap.setInteractive();
 
-    playButton.on("pointerover", () => {
+    playSmallMap.on("pointerover", () => {
         console.log("Hover");
-    })
+    });
+    playBigMap.on("pointerover", () => {
+        console.log("Hover");
+    });
 
-    playButton.on("pointerout", () => {
+    playSmallMap.on("pointerout", () => {
         console.log("Not Hover");
-    })
+    });
+    playBigMap.on("pointerout", () => {
+        console.log("Not Hover");
+    });
 
-    playButton.on("pointerup", () => {
+    playSmallMap.on("pointerup", () => {
         console.log("Play");
-        this.scene.start("Scene1");
-    })
-/*
-        optionsButton.setInteractive();
+        this.scene.start("SmallMap");
+    });
+    playBigMap.on("pointerup", () => {
+        console.log("Play");
+        this.scene.start("BigMap");
+    });
 
-        optionsButton.on("pointerover", () => {
-            hoverSprite.setVisible(true);
-            hoverSprite.play("walk");
-            hoverSprite.x = optionsButton.x - optionsButton.width;
-            hoverSprite.y = optionsButton.y;
-
-        })
-
-        optionsButton.on("pointerout", () => {
-            hoverSprite.setVisible(false);
-        })
-
-        optionsButton.on("pointerup", () => {
-            //this.scene.launch();
-        })
-*/
-    }
+  }
 
 }
 
