@@ -5,6 +5,16 @@ class MenuScene extends Phaser.Scene{
 
   preload(){
     this.load.image('tiles', 'assets/roguelikeDungeon_transparent.png');
+    this.load.audio('GameSong', ['assets/Quirky-Action.mp3','assets/Quirky-Action.ogg'])
+    this.load.audio('snakehiss', ['assets/snakehiss2short.mp3','assets/snakehiss2short.ogg']);
+    //Snake Hiss Sound
+    //https://www.freesoundeffects.com/free-sounds/snake-10065/
+
+    /*
+    "Quirky-Action"
+    by Eric Matyas
+    www.soundimage.org
+    */
   } // end preload
 
   create(){
@@ -12,6 +22,18 @@ class MenuScene extends Phaser.Scene{
     MAPHEIGHT = 608;
     SIZEX = MAPWIDTH / TILEWIDTH;
     SIZEY = MAPHEIGHT / TILEHEIGHT;
+
+    gameSound = this.sound.add('GameSong', {
+      loop: true
+    });
+    snakeHiss = this.sound.add('snakehiss');
+
+    gameSound.pauseOnBlur = true;
+    gameSound.play();
+    gameSound.setVolume(0.5);
+
+    snakeHiss.play();
+
 
     createMenuMap(this);
 
@@ -57,10 +79,12 @@ class MenuScene extends Phaser.Scene{
 
     playSmallMap.on("pointerup", () => {
         console.log("Play");
+        snakeHiss.play();
         this.scene.start("SmallMap");
     });
     playBigMap.on("pointerup", () => {
         console.log("Play");
+        snakeHiss.play();
         this.scene.start("BigMap");
     });
   } // end create

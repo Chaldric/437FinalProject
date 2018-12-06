@@ -12,6 +12,9 @@ var config = {
   render:{
     pixelArt: true
   },
+  audio: {
+        disableWebAudio: true
+  },
   scene: [ MenuScene, SmallMap, BigMap ]
 };
 
@@ -45,6 +48,7 @@ var worldSprites;
 var pSnake, food;
 var eSnake, eSnakes, newESnake;
 var makeEnemy;
+var gameSound, snakeHiss;
 
 var player, seg, playerVelX, score;
 
@@ -212,6 +216,7 @@ var Snake = new Phaser.Class({
       this.score++;
       this.grow();
       food.eat();
+      snakeHiss.play();
 
       if ((this.speed > 20) && (food.total % 5 == 0)){
         this.speed -= 5;
